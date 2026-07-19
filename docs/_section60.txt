@@ -1,0 +1,47 @@
+---
+
+### 6.0 LLM Provider Layer (`utils/llm.py`) — Shared by Phase 2 & 5
+
+**Responsibility:** Single abstraction over Groq and Grok so `classify.py` and `ask.py` never call a vendor SDK directly.
+
+```
+                    ┌─────────────────┐
+                    │   call_llm()    │
+                    │ call_llm_json() │
+                    └────────┬────────┘
+                             │
+              ┌──────────────┴──────────────┐
+              ▼                             ▼
+     ┌─────────────────┐           ┌─────────────────┐
+     │  Groq client    │           │  Grok client    │
+     │  (groq SDK)     │           │  (openai SDK →  │
+     │  Llama 3        │           │   api.x.ai/v1)  │
+     └─────────────────┘           └─────────────────┘
+              ▲                             ▲
+              └──────── LLM_PROVIDER ───────┘
+                    "groq" | "grok"
+```
+
+**Public interface:**
+
+```python
+def get_llm_provider() -> str: ...          # "groq" | "grok"
+def call_llm(prompt: str, system: str = "") -> str: ...
+def call_llm_json(prompt: str) -> dict: ...
+```
+
+**Provider config:**
+
+| Provider | Env var | Model (default) | SDK |
+|----------|---------|-----------------|-----|
+| `groq` (default) | `GROQ_API_KEY` | `llama-3.1-8b-instant` | `groq` |
+| `grok` | `XAI_API_KEY` | `grok-2-1212` | `openai` → `base_url="https://api.x.ai/v1"` |
+
+**Switch provider** in `.env`:
+```
+LLM_PROVIDER=groq    # or grok
+GROQ_API_KEY=gsk_...
+XAI_API_KEY=xai_...
+```
+
+---
