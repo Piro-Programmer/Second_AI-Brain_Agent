@@ -22,21 +22,21 @@ if os.path.exists(config.RAW_DIR):
         folder_path = os.path.join(config.RAW_DIR, folder)
         content_path = os.path.join(folder_path, "content.md")
         meta_path = os.path.join(folder_path, "meta.json")
-        
+
         if os.path.exists(content_path) and os.path.exists(meta_path):
             try:
                 with open(meta_path, "r", encoding="utf-8") as f:
                     meta = json.load(f)
-                
+
                 with open(content_path, "r", encoding="utf-8") as f:
                     content = f.read()
-                    
+
                 title = f"{meta['timestamp']} - {meta['source_type'].upper()}"
                 if meta.get("url"):
                     title += f" ({meta['url']})"
                 elif meta.get("original_filename"):
                     title += f" ({meta['original_filename']})"
-                    
+
                 with st.expander(title):
                     st.text(content)
             except Exception as e:

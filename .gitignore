@@ -27,3 +27,4 @@ data/embeddings/*
 !data/embeddings/.gitkeep
 # Ignore generated data, except demo graph if needed
 data/*.json
+data/embeddings.pkl

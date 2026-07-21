@@ -101,17 +101,59 @@ def capture_file(file_path: str) -> str:
     print(f"Captured file: {content_path}")
     return content_path
 
+def list_captures():
+    """List all captured items in the terminal."""
+    if not os.path.exists(config.RAW_DIR):
+        print("No captures found.")
+        return
+        
+    folders = sorted([f for f in os.listdir(config.RAW_DIR) if os.path.isdir(os.path.join(config.RAW_DIR, f))], reverse=True)
+    if not folders:
+        print("No captures found.")
+        return
+        
+    print(f"\n--- Found {len(folders)} captures in raw/ ---")
+    for folder in folders:
+        meta_path = os.path.join(config.RAW_DIR, folder, "meta.json")
+        content_path = os.path.join(config.RAW_DIR, folder, "content.md")
+        if os.path.exists(meta_path):
+            import json
+            with open(meta_path, "r", encoding="utf-8") as f:
+                meta = json.load(f)
+            
+            info = f"[{meta['timestamp'][:16].replace('T', ' ')}] {meta['source_type'].upper()}"
+            if meta.get("url"):
+                info += f" - {meta['url']}"
+            elif meta.get("original_filename"):
+                info += f" - {meta['original_filename']}"
+            
+            # Read a small snippet of the content
+            snippet = ""
+            if os.path.exists(content_path):
+                with open(content_path, "r", encoding="utf-8", errors="ignore") as f:
+                    snippet = f.read(100).replace('\n', ' ').strip()
+                    if len(snippet) == 100:
+                        snippet += "..."
+                
+            print(f"\n- Folder:  {folder}")
+            print(f"  Info:    {info}")
+            print(f"  Preview: {snippet}")
+    print("\n-------------------------------------")
+
 def main():
     parser = argparse.ArgumentParser(description="SecondSelf Capture Pipeline")
     parser.add_argument("--note", type=str, help="Capture a text note")
     parser.add_argument("--link", type=str, help="Capture a URL")
     parser.add_argument("--file", type=str, help="Capture a file path")
+    parser.add_argument("--list", action="store_true", help="List all captured items in the terminal")
     
     args = parser.parse_args()
     
     ensure_dir(config.RAW_DIR)
     
-    if args.note:
+    if args.list:
+        list_captures()
+    elif args.note:
         capture_note(args.note)
     elif args.link:
         capture_link(args.link)
@@ -119,7 +161,7 @@ def main():
         capture_file(args.file)
     else:
         # If no arguments, try reading from stdin or prompting
-        print("Please provide --note, --link, or --file. See --help for details.")
+        print("Please provide --note, --link, --file, or --list. See --help for details.")
         
 if __name__ == "__main__":
     main()
