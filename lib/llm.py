@@ -4,19 +4,22 @@ from groq import Groq
 
 client = Groq(api_key=config.GROQ_API_KEY)
 
-def call_llm(prompt: str, system: str = "") -> str:
+def call_llm(prompt: str, system: str = "", json_mode: bool = True, temperature: float = 0.1) -> str:
     """Wrapper to call Groq API."""
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
     messages.append({"role": "user", "content": prompt})
     
-    response = client.chat.completions.create(
-        model=config.GROQ_MODEL,
-        messages=messages,
-        response_format={"type": "json_object"},
-        temperature=0.1
-    )
+    kwargs = {
+        "model": config.GROQ_MODEL,
+        "messages": messages,
+        "temperature": temperature
+    }
+    if json_mode:
+        kwargs["response_format"] = {"type": "json_object"}
+        
+    response = client.chat.completions.create(**kwargs)
     return response.choices[0].message.content
 
 def classify_content(text: str) -> dict:
@@ -36,7 +39,7 @@ def classify_content(text: str) -> dict:
     
     prompt = f"Please classify the following content:\n\n{truncated_text}"
     
-    response_text = call_llm(prompt, system=system_prompt)
+    response_text = call_llm(prompt, system=system_prompt, json_mode=True, temperature=0.1)
     
     try:
         data = json.loads(response_text)
@@ -52,5 +55,11 @@ def classify_content(text: str) -> dict:
         }
         
 def synthesize_answer(context: str, question: str) -> str:
-    # Stub for Week 4
-    pass
+    """Synthesize RAG answer using Groq LLM based on retrieved notes."""
+    system_prompt = (
+        "You are SecondSelf, answering from the user's personal knowledge base. "
+        "Use ONLY the provided notes. If the answer isn't in the notes, say so. "
+        "Cite sources as [note-id]."
+    )
+    prompt = f"Notes:\n{context}\n\nQuestion: {question}"
+    return call_llm(prompt, system=system_prompt, json_mode=False, temperature=0.3)

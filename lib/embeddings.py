@@ -11,7 +11,10 @@ def get_model():
     global _model
     if _model is None:
         print(f"Loading embedding model ({config.EMBEDDING_MODEL})...")
-        _model = SentenceTransformer(config.EMBEDDING_MODEL)
+        try:
+            _model = SentenceTransformer(config.EMBEDDING_MODEL, local_files_only=True)
+        except Exception:
+            _model = SentenceTransformer(config.EMBEDDING_MODEL)
     return _model
 
 def embed_text(text: str) -> np.ndarray:

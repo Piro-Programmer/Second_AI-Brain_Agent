@@ -12,14 +12,13 @@ This plan breaks the 4-week SecondSelf project into **10 phases**. Phases 0–5 
 ```
 Phase 0   Setup & scaffolding
 Phase 1   Capture pipeline          ── Week 1  🏅 The Archivist
-Phase 2   Auto-classify (PARA)      ── Week 2.1
-Phase 3   Auto-link (embeddings)    ── Week 2.2 🏅 The Librarian
-Phase 4   Graph builder + viz       ── Week 3   🏅 The Cartographer
-Phase 5   RAG + Streamlit app       ── Week 4   🏅 The Oracle
-Phase 6   Local module testing
-Phase 7   Local end-to-end testing
-Phase 8   Deploy to public URL
-Phase 9   Final production testing
+Phase 2   The Librarian               ── Week 2  🏅 The Librarian
+Phase 3   The Cartographer            ── Week 3  🏅 The Cartographer
+Phase 4   The Oracle                  ── Week 4  🏅 The Oracle
+Phase 5   Local module testing
+Phase 6   Local end-to-end testing
+Phase 7   Deploy to public URL
+Phase 8   Final production testing
 ```
 
 ### Phase Dependency Graph
@@ -260,7 +259,9 @@ python capture.py --file "path/to/document.pdf"
 
 ---
 
-## Phase 2 — Auto-Classify with PARA (Week 2.1)
+## Phase 2 — The Librarian (Week 2)
+
+### Sub-Phase 2.1 — Auto-Classify
 
 **Goal:** Send raw captures to an LLM (Groq/Llama 3 or Grok/xAI) and produce organized wiki notes with PARA category, tags, and summary.
 
@@ -330,7 +331,7 @@ python -c "from utils.llm import get_llm_provider; print(get_llm_provider())"
 
 ---
 
-## Phase 3 — Auto-Link with Embeddings (Week 2.2)
+### Sub-Phase 2.2 — Auto-Link Related Notes
 
 **Goal:** Compute local embeddings, find semantically related notes, and auto-insert wikilinks.
 
@@ -392,7 +393,7 @@ python link.py --note wiki/Projects/abc123.md   # single note
 
 ---
 
-## Phase 4 — Graph Builder + Interactive Visualization (Week 3)
+## Phase 3 — The Cartographer (Week 3)
 
 **Goal:** Convert wiki notes and links into `graph.json` and render an interactive force-directed graph.
 
@@ -404,7 +405,7 @@ python link.py --note wiki/Projects/abc123.md   # single note
 
 ### Tasks
 
-#### 4.1 — Graph Data Model
+#### 3.1 — Graph Data Model
 
 | #   | Task                                                      | File             |
 | --- | --------------------------------------------------------- | ---------------- |
@@ -415,7 +416,7 @@ python link.py --note wiki/Projects/abc123.md   # single note
 | 4.5 | Export clean `data/graph.json`                            | `build_graph.py` |
 | 4.6 | Add metadata block (node_count, edge_count, generated_at) | `build_graph.py` |
 
-#### 4.2 — Interactive Graph
+#### 3.2 — Interactive Graph
 
 | #    | Task                                            | File                                     |
 | ---- | ----------------------------------------------- | ---------------------------------------- |
@@ -456,11 +457,11 @@ streamlit run app.py
 
 ### Acceptance Criteria
 
-- [ ] Script builds nodes + edges from notes and exports clean JSON
-- [ ] Interactive force-directed graph renders from that JSON
-- [ ] Hover reveals note content (summary + preview)
-- [ ] Drag + zoom work
-- [ ] Built from your real notes, not dummy data
+- [x] Script builds nodes + edges from notes and exports clean JSON
+- [x] Interactive force-directed graph renders from that JSON
+- [x] Hover reveals note content (summary + preview)
+- [x] Drag + zoom work
+- [x] Built from your real notes, not dummy data
 
 ### Estimated Effort
 
@@ -468,7 +469,7 @@ streamlit run app.py
 
 ---
 
-## Phase 5 — RAG Q&A + Streamlit App (Week 4)
+## Phase 4 — The Oracle (Week 4)
 
 **Goal:** Implement `ask()` for retrieval-augmented Q&A and assemble the full Streamlit UI.
 
@@ -476,40 +477,40 @@ streamlit run app.py
 
 **Maps to:** Problem Statement Week 4 · Architecture §6.5, §6.6
 
-**Depends on:** Phase 3 (embeddings), Phase 4 (graph.json)
+**Depends on:** Phase 3 (embeddings), Phase 3 (graph.json)
 
 ### Tasks
 
-#### 5.1 — RAG Q&A (`ask.py`)
+#### 4.1 — Ask Your Brain (`ask.py`)
 
-| #   | Task                                                        | File     |
-| --- | ----------------------------------------------------------- | -------- |
-| 5.1 | Embed user question                                         | `ask.py` |
-| 5.2 | Retrieve top-K similar notes from embeddings index          | `ask.py` |
-| 5.3 | Apply minimum similarity floor (0.30)                       | `ask.py` |
-| 5.4 | Build context from retrieved wiki notes                     | `ask.py` |
-| 5.5 | Send context + question to LLM (Groq or Grok) for synthesis | `ask.py` |
-| 5.6 | Return answer + source citations + confidence               | `ask.py` |
-| 5.7 | Add CLI entry point for testing                             | `ask.py` |
+| #     | Task                                                        | File     |
+| ----- | ----------------------------------------------------------- | -------- |
+| 4.1.1 | Embed user question                                         | `ask.py` |
+| 4.1.2 | Retrieve top-K similar notes from embeddings index          | `ask.py` |
+| 4.1.3 | Apply minimum similarity floor (0.30) and guardrails        | `ask.py` |
+| 4.1.4 | Build RAG prompt from retrieved wiki notes                  | `ask.py` |
+| 4.1.5 | Send context + question to LLM (Groq or Grok) for synthesis | `ask.py` |
+| 4.1.6 | Return answer + source citations (`{id, summary, score}`)   | `ask.py` |
+| 4.1.7 | Add CLI entry point for testing 5+ real questions           | `ask.py` |
 
-#### 5.2 — Streamlit App (`app.py`)
+#### 4.2 — Streamlit App + Deployment (`app.py`)
 
-| #    | Task                                                         | File                    |
-| ---- | ------------------------------------------------------------ | ----------------------- |
-| 5.8  | App layout: title, sidebar, tabs                             | `app.py`                |
-| 5.9  | Tab 1: Brain Graph (load `graph.json`, render interactively) | `app.py`                |
-| 5.10 | Tab 2: Ask Anything (input + button + answer display)        | `app.py`                |
-| 5.11 | Sidebar: stats (note count, link count)                      | `app.py`                |
-| 5.12 | Sidebar: "Run Pipeline" button                               | `app.py`, `pipeline.py` |
-| 5.13 | Sidebar: quick capture form (optional)                       | `app.py`                |
-| 5.14 | Click node → show full note in expander                      | `app.py`                |
+| #     | Task                                                         | File                    |
+| ----- | ------------------------------------------------------------ | ----------------------- |
+| 4.2.1 | App layout: title, sidebar, tabs                             | `app.py`                |
+| 4.2.2 | Tab 1: Brain Graph (load `graph.json`, render interactively) | `app.py`                |
+| 4.2.3 | Tab 2: Ask Anything (input + button + answer display)        | `app.py`                |
+| 4.2.4 | Sidebar: stats (note count, link count)                      | `app.py`                |
+| 4.2.5 | Sidebar: "Run Pipeline" button                               | `app.py`, `pipeline.py` |
+| 4.2.6 | Sidebar: quick capture form (optional)                       | `app.py`                |
+| 4.2.7 | Click node → show full note in expander                      | `app.py`                |
 
-#### 5.3 — Pipeline Orchestration
+#### 4.3 — Pipeline Orchestration
 
-| #    | Task                                   | File          |
-| ---- | -------------------------------------- | ------------- |
-| 5.15 | Implement `run_full_pipeline()`        | `pipeline.py` |
-| 5.16 | Wire pipeline to sidebar button in app | `app.py`      |
+| #     | Task                                   | File          |
+| ----- | -------------------------------------- | ------------- |
+| 4.3.1 | Implement `run_full_pipeline()`        | `pipeline.py` |
+| 4.3.2 | Wire pipeline to sidebar button in app | `app.py`      |
 
 ### Key Functions
 
@@ -534,12 +535,12 @@ streamlit run app.py
 
 ### Acceptance Criteria
 
-- [ ] `ask()` returns answers synthesized from your own notes (retrieval + LLM)
-- [ ] Sources cited with note IDs and similarity scores
-- [ ] One Streamlit app contains both the graph and the search bar
-- [ ] Pipeline button runs classify → link → graph rebuild
-- [ ] App runs locally without errors
-- [ ] RAG synthesis works with configured LLM provider (Groq or Grok)
+- [x] `ask()` returns answers synthesized from your own notes (retrieval + LLM)
+- [x] Sources cited with note IDs and similarity scores
+- [x] One Streamlit app contains both the graph and the search bar
+- [x] Pipeline button runs classify → link → graph rebuild
+- [x] App runs locally without errors
+- [x] RAG synthesis works with configured LLM provider (Groq or Grok)
 
 ### Estimated Effort
 
@@ -547,13 +548,13 @@ streamlit run app.py
 
 ---
 
-## Phase 6 — Local Module Testing
+## Phase 5 — Local Module Testing
 
 **Goal:** Verify each module works in isolation before running the full pipeline.
 
 **Maps to:** Architecture §14 (Testing Strategy)
 
-**Depends on:** Phase 5 (all modules implemented)
+**Depends on:** Phase 4 (all modules implemented)
 
 ### Test Matrix
 
@@ -596,13 +597,13 @@ tests/
 
 ---
 
-## Phase 7 — Local End-to-End Testing
+## Phase 6 — Local End-to-End Testing
 
 **Goal:** Run the complete pipeline on real data and verify the full user journey locally.
 
 **Maps to:** Problem Statement Final Deliverables · Architecture §7
 
-**Depends on:** Phase 6 (modules verified)
+**Depends on:** Phase 5 (modules verified)
 
 ### E2E Test Script
 
@@ -672,13 +673,13 @@ streamlit run app.py
 
 ---
 
-## Phase 8 — Deploy to Public URL
+## Phase 7 — Deploy to Public URL
 
 **Goal:** Ship the Streamlit app to Streamlit Cloud (or Hugging Face Spaces) with a public URL.
 
 **Maps to:** Problem Statement Week 4.2 · Architecture §10
 
-**Depends on:** Phase 7 (local E2E passes)
+**Depends on:** Phase 6 (local E2E passes)
 
 ### Pre-Deploy Checklist
 
@@ -751,13 +752,13 @@ data/embeddings/   # pre-computed (or rebuild on first run)
 
 ---
 
-## Phase 9 — Final Production Testing
+## Phase 8 — Final Production Testing
 
 **Goal:** Verify the deployed app works end-to-end on the live URL for anyone who opens it.
 
 **Maps to:** Problem Statement Final Deliverables
 
-**Depends on:** Phase 8 (deployed)
+**Depends on:** Phase 7 (deployed)
 
 ### Production Test Checklist
 

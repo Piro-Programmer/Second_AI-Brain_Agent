@@ -70,7 +70,7 @@ python capture.py --file "path/to/research_paper.pdf"
 Run the Streamlit dashboard to interact with your knowledge base and view your verification statistics.
 
 ```bash
-streamlit run lib/app.py
+python -m streamlit run app.py
 ```
 *Open `http://localhost:8501` in your browser to view the dashboard!*
 

@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SecondSelf // The Cartographer - Interactive Brain Graph</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Vis-Network CSS and JS -->
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <style>
+        :root {
+            --bg-main: #0f1016;
+            --bg-card: rgba(26, 28, 40, 0.75);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent-primary: #6366f1;
+            
+            --color-projects: #FF6B6B;
+            --color-areas: #4ECDC4;
+            --color-resources: #45B7D1;
+            --color-archives: #96CEB4;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at 50% 0%, #1e2030 0%, var(--bg-main) 100%);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Top Navigation / Glass Bar */
+        header {
+            height: 70px;
+            background: rgba(15, 16, 22, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 10;
+        }
+
+        .logo {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .badge {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 0.25rem 0.6rem;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            letter-spacing: 0.05em;
+            box-shadow: 0 2px 10px rgba(99, 102, 241, 0.4);
+            -webkit-text-fill-color: white;
+        }
+
+        .stats-bar {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Main Container */
+        .main-container {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Filter Controls */
+        .controls-overlay {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .filter-panel {
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            padding: 0.75rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .filter-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-secondary);
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .filter-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .filter-btn.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.2);
+            font-weight: 600;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Graph Network Canvas */
+        #network {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+
+        #network:active {
+            cursor: grabbing;
+        }
+
+        /* Sidebar / Node Details Panel */
+        .sidebar {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            bottom: 1.5rem;
+            width: 380px;
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.75rem;
+            box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            transform: translateX(420px);
+            transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 20;
+            overflow-y: auto;
+        }
+
+        .sidebar.open {
+            transform: translateX(0);
+        }
+
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.2s;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            color: var(--text-primary);
+        }
+
+        .node-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            line-height: 1.3;
+            color: var(--text-primary);
+        }
+
+        .node-para-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.5rem;
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .tag {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .preview-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #cbd5e1;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .links-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .link-item {
+            background: rgba(255, 255, 255, 0.04);
+            padding: 0.6rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            color: var(--accent-primary);
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .link-item:hover {
+            background: rgba(99, 102, 241, 0.1);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        /* Custom Vis-Network Tooltip Styling */
+        div.vis-tooltip {
+            background-color: rgba(15, 16, 22, 0.95) !important;
+            backdrop-filter: blur(12px) !important;
+            color: var(--text-primary) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            border-radius: 10px !important;
+            padding: 12px 16px !important;
+            font-family: 'Inter', sans-serif !important;
+            font-size: 0.85rem !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6) !important;
+            max-width: 320px !important;
+            line-height: 1.5 !important;
+        }
+        
+        /* Loading overlay */
+        .loading {
+            position: absolute;
+            inset: 0;
+            background: var(--bg-main);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            z-index: 100;
+            transition: opacity 0.5s ease;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-radius: 50%;
+            border-top-color: var(--accent-primary);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <div style="font-family: 'Outfit'; font-weight: 600; color: var(--text-secondary);">Synthesizing Brain Graph...</div>
+    </div>
+
+    <header>
+        <div class="logo">
+            <span>SECONDSELF</span>
+            <span class="badge">The Cartographer</span>
+        </div>
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-value" id="node-count">0</span>
+                <span class="stat-label">Nodes</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="edge-count">0</span>
+                <span class="stat-label">Connections</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-value" id="generated-at" style="font-size: 0.85rem; color: #a5b4fc;">--</span>
+                <span class="stat-label">Last Updated</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <div class="controls-overlay">
+            <div class="filter-panel">
+                <button class="filter-btn active" onclick="filterGraph('All')">All Categories</button>
+                <button class="filter-btn" onclick="filterGraph('Projects')">
+                    <span class="dot" style="background: var(--color-projects);"></span> Projects
+                </button>
+                <button class="filter-btn" onclick="filterGraph('Areas')">
+                    <span class="dot" style="background: var(--color-areas);"></span> Areas
+                </button>
+                <button class="filter-btn" onclick="filterGraph('Resources')">
+                    <span class="dot" style="background: var(--color-resources);"></span> Resources
+                </button>
+                <button class="filter-btn" onclick="filterGraph('Archives')">
+                    <span class="dot" style="background: var(--color-archives);"></span> Archives
+                </button>
+            </div>
+        </div>
+
+        <div id="network"></div>
+
+        <!-- Sidebar / Details Panel -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div>
+                    <div class="node-title" id="side-title">Note Title</div>
+                    <div class="node-para-badge" id="side-para-badge">
+                        <span class="dot" id="side-para-dot"></span>
+                        <span id="side-para-text">Category</span>
+                    </div>
+                </div>
+                <button class="close-btn" onclick="closeSidebar()">&times;</button>
+            </div>
+
+            <div>
+                <div class="section-label">Tags</div>
+                <div class="tag-list" id="side-tags"></div>
+            </div>
+
+            <div>
+                <div class="section-label">Summary</div>
+                <div style="font-size: 0.95rem; line-height: 1.5; color: #f8fafc;" id="side-summary"></div>
+            </div>
+
+            <div>
+                <div class="section-label">Content Preview</div>
+                <div class="preview-box" id="side-preview"></div>
+            </div>
+
+            <div id="side-links-container" style="display: none;">
+                <div class="section-label">Connected Notes</div>
+                <ul class="links-list" id="side-links"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let network = null;
+        let allNodes = [];
+        let allEdges = [];
+        let nodesDataset = null;
+        let edgesDataset = null;
+        let currentFilter = 'All';
+        let rawGraphData = null;
+
+        const PARA_COLORS = {
+            "Projects": "#FF6B6B",
+            "Areas": "#4ECDC4",
+            "Resources": "#45B7D1",
+            "Archives": "#96CEB4"
+        };
+
+        async function initGraph() {
+            try {
+                // Try fetching from /data/graph.json or ../data/graph.json
+                let response;
+                try {
+                    response = await fetch('/data/graph.json');
+                    if (!response.ok) throw new Error('Not found');
+                } catch {
+                    response = await fetch('../data/graph.json');
+                }
+
+                if (!response.ok) {
+                    throw new Error("Failed to fetch graph.json");
+                }
+
+                rawGraphData = await response.json();
+                
+                // Update stats bar
+                document.getElementById('node-count').innerText = rawGraphData.metadata.node_count || rawGraphData.nodes.length;
+                document.getElementById('edge-count').innerText = rawGraphData.metadata.edge_count || rawGraphData.edges.length;
+                
+                if (rawGraphData.metadata.generated_at) {
+                    const dt = new Date(rawGraphData.metadata.generated_at);
+                    document.getElementById('generated-at').innerText = dt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                }
+
+                // Prepare datasets
+                allNodes = rawGraphData.nodes.map(n => ({
+                    ...n,
+                    label: n.label || n.summary || 'Untitled Note',
+                    color: {
+                        background: n.color || PARA_COLORS[n.para] || '#45B7D1',
+                        border: '#ffffff33',
+                        highlight: {
+                            background: n.color || PARA_COLORS[n.para] || '#45B7D1',
+                            border: '#ffffff'
+                        },
+                        hover: {
+                            background: n.color || PARA_COLORS[n.para] || '#45B7D1',
+                            border: '#ffffff88'
+                        }
+                    },
+                    font: { color: '#f8fafc', face: 'Inter', size: 14, strokeWidth: 3, strokeColor: '#0f1016' },
+                    shape: 'dot',
+                    size: n.para === 'Projects' ? 26 : 20,
+                    shadow: { enabled: true, color: 'rgba(0,0,0,0.5)', size: 10 }
+                }));
+
+                allEdges = rawGraphData.edges.map(e => ({
+                    from: e.from || e.source,
+                    to: e.to || e.target,
+                    color: { color: '#475569', highlight: '#6366f1', hover: '#818cf8', opacity: 0.6 },
+                    width: 1.5,
+                    smooth: { type: 'continuous' }
+                }));
+
+                nodesDataset = new vis.DataSet(allNodes);
+                edgesDataset = new vis.DataSet(allEdges);
+
+                const container = document.getElementById('network');
+                const data = { nodes: nodesDataset, edges: edgesDataset };
+                
+                // Barnes-Hut Physics configuration per Week 3 Specification
+                const options = {
+                    physics: {
+                        barnesHut: {
+                            gravitationalConstant: -8000,
+                            springLength: 150,
+                            springConstant: 0.04,
+                            damping: 0.09,
+                            avoidOverlap: 0.2
+                        },
+                        stabilization: {
+                            iterations: 200,
+                            updateInterval: 25
+                        }
+                    },
+                    interaction: {
+                        dragNodes: true,
+                        dragView: true,
+                        zoomView: true,
+                        hover: true,
+                        tooltipDelay: 150
+                    }
+                };
+
+                network = new vis.Network(container, data, options);
+
+                // Hide loading overlay when settled
+                network.on("stabilizationIterationsDone", function () {
+                    document.getElementById('loading').style.opacity = '0';
+                    setTimeout(() => document.getElementById('loading').style.display = 'none', 500);
+                });
+                
+                // Fallback in case graph is small and stabilizes instantly
+                setTimeout(() => {
+                    document.getElementById('loading').style.opacity = '0';
+                    setTimeout(() => document.getElementById('loading').style.display = 'none', 500);
+                }, 1000);
+
+                // Handle node click event
+                network.on("click", function (params) {
+                    if (params.nodes.length > 0) {
+                        const nodeId = params.nodes[0];
+                        const nodeData = allNodes.find(n => n.id === nodeId);
+                        if (nodeData) {
+                            openSidebar(nodeData);
+                        }
+                    } else {
+                        closeSidebar();
+                    }
+                });
+
+                // Change cursor on hover
+                network.on("hoverNode", function () {
+                    document.getElementById('network').style.cursor = 'pointer';
+                });
+                network.on("blurNode", function () {
+                    document.getElementById('network').style.cursor = 'grab';
+                });
+
+            } catch (err) {
+                console.error("Error initializing graph:", err);
+                document.getElementById('loading').innerHTML = `
+                    <div style="color: #FF6B6B; font-family: 'Outfit'; font-size: 1.2rem; font-weight: 600;">Failed to Load Graph Data</div>
+                    <div style="color: #94a3b8; font-size: 0.9rem; max-width: 400px; text-align: center;">Make sure <code>python build_graph.py</code> has been run and you are serving via an HTTP server like <code>python -m http.server 8000</code>.</div>
+                `;
+            }
+        }
+
+        function filterGraph(category) {
+            currentFilter = category;
+            
+            // Update button UI
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.innerText.includes(category) || (category === 'All' && btn.innerText.includes('All'))) {
+                    btn.classList.add('active');
+                }
+            });
+
+            if (category === 'All') {
+                nodesDataset.clear();
+                nodesDataset.add(allNodes);
+            } else {
+                const filtered = allNodes.filter(n => n.para === category);
+                nodesDataset.clear();
+                nodesDataset.add(filtered);
+            }
+            
+            closeSidebar();
+        }
+
+        function openSidebar(node) {
+            document.getElementById('side-title').innerText = node.summary || node.label || 'Untitled Note';
+            
+            const para = node.para || 'Resources';
+            const color = PARA_COLORS[para] || '#45B7D1';
+            
+            document.getElementById('side-para-text').innerText = para;
+            document.getElementById('side-para-dot').style.background = color;
+            document.getElementById('side-para-badge').style.background = `${color}22`;
+            document.getElementById('side-para-badge').style.color = color;
+            document.getElementById('side-para-badge').style.border = `1px solid ${color}55`;
+            
+            // Tags
+            const tagsContainer = document.getElementById('side-tags');
+            tagsContainer.innerHTML = '';
+            if (node.tags && node.tags.length > 0) {
+                node.tags.forEach(tag => {
+                    const t = document.createElement('span');
+                    t.className = 'tag';
+                    t.innerText = `#${tag}`;
+                    tagsContainer.appendChild(t);
+                });
+            } else {
+                tagsContainer.innerHTML = '<span class="tag">no tags</span>';
+            }
+
+            document.getElementById('side-summary').innerText = node.summary || 'No summary available.';
+            document.getElementById('side-preview').innerText = node.content_preview || 'No preview available.';
+            
+            // Connected links
+            const linksContainer = document.getElementById('side-links-container');
+            const linksList = document.getElementById('side-links');
+            linksList.innerHTML = '';
+            
+            // Find edges connected to this node
+            const connectedEdges = allEdges.filter(e => e.from === node.id || e.to === node.id);
+            if (connectedEdges.length > 0) {
+                linksContainer.style.display = 'block';
+                connectedEdges.forEach(e => {
+                    const targetId = e.from === node.id ? e.to : e.from;
+                    const targetNode = allNodes.find(n => n.id === targetId);
+                    if (targetNode) {
+                        const li = document.createElement('li');
+                        li.className = 'link-item';
+                        li.innerText = `↗ ${targetNode.summary || targetNode.label}`;
+                        li.onclick = () => {
+                            network.selectNodes([targetId]);
+                            openSidebar(targetNode);
+                            network.focus(targetId, { scale: 1.2, animation: { duration: 600, easingFunction: 'easeInOutQuad' } });
+                        };
+                        linksList.appendChild(li);
+                    }
+                });
+            } else {
+                linksContainer.style.display = 'none';
+            }
+
+            document.getElementById('sidebar').classList.add('open');
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            if (network) network.unselectAll();
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', initGraph);
+    </script>
+</body>
+</html>

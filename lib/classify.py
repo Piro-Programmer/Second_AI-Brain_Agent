@@ -67,6 +67,7 @@ def main():
             "---",
             f"id: {meta.get('id')}",
             f"raw_id: {folder}",
+            f"aliases: [{json.dumps(meta.get('id'))}, {json.dumps(folder)}]",
             f"para: {para}",
             f"tags: {json.dumps(tags)}",
             f"summary: {json.dumps(summary)}",
