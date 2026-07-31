@@ -1,0 +1,352 @@
+{
+  "nodes": [
+    {
+      "id": "2026-07-21_b96671e8",
+      "label": "2026-07-21_b96671e8",
+      "para": "Resources",
+      "tags": [],
+      "summary": "2026-07-21_b96671e8",
+      "content_preview": "",
+      "group": "Resources",
+      "color": "#45B7D1",
+      "title": "Summary: 2026-07-21_b96671e8\n\nPreview: "
+    },
+    {
+      "id": "2026-07-23_573b1450",
+      "label": "2026-07-23_573b1450",
+      "para": "Resources",
+      "tags": [],
+      "summary": "2026-07-23_573b1450",
+      "content_preview": "",
+      "group": "Resources",
+      "color": "#45B7D1",
+      "title": "Summary: 2026-07-23_573b1450\n\nPreview: "
+    },
+    {
+      "id": "b6ffe283-60f4-4be1-bc05-afd5443deae2",
+      "label": "Integrate PostgreSQL database into Todo CRUD Re...",
+      "para": "Projects",
+      "tags": [
+        "PostgreSQL",
+        "Todo CRUD",
+        "React",
+        "database"
+      ],
+      "summary": "Integrate PostgreSQL database into Todo CRUD React app",
+      "content_preview": "Idea: I should integrate a PostgreSQL database into my Todo CRUD React app next month.",
+      "group": "Projects",
+      "color": "#FF6B6B",
+      "title": "Summary: Integrate PostgreSQL database into Todo CRUD React app\n\nPreview: Idea: I should integrate a PostgreSQL database into my Todo CRUD React app next month."
+    },
+    {
+      "id": "e622a7ec-e351-4015-b314-0a8a3b660869",
+      "label": "Update LinkedIn headline to showcase AI enginee...",
+      "para": "Projects",
+      "tags": [
+        "LinkedIn",
+        "AI engineering",
+        "career development"
+      ],
+      "summary": "Update LinkedIn headline to showcase AI engineering skills and recent projects",
+      "content_preview": "Need to update my LinkedIn headline to highlight my AI engineering skills and recent projects.",
+      "group": "Projects",
+      "color": "#FF6B6B",
+      "title": "Summary: Update LinkedIn headline to showcase AI engineering skills and recent projects\n\nPreview: Need to update my LinkedIn headline to highlight my AI engineering skills and recent projects."
+    },
+    {
+      "id": "f9a5dae9-0d34-40a5-a289-c59e4467c807",
+      "label": "Build an AI-powered resume analyzer using the G...",
+      "para": "Projects",
+      "tags": [
+        "AI-powered resume analyzer",
+        "Groq API",
+        "Next.js"
+      ],
+      "summary": "Build an AI-powered resume analyzer using the Groq API and Next.js.",
+      "content_preview": "Project Idea: Build an AI-powered resume analyzer using the Groq API and Next.js.\n\nRelated reference:\n[[4b5bfe1a-68b6-45d9-ad0c-7320f8caca48]]",
+      "group": "Projects",
+      "color": "#FF6B6B",
+      "title": "Summary: Build an AI-powered resume analyzer using the Groq API and Next.js.\n\nPreview: Project Idea: Build an AI-powered resume analyzer using the Groq API and Next.js.\n\nRelated reference:\n[[4b5bfe1a-68b6-45d9-ad0c-7320f8caca48]]"
+    },
+    {
+      "id": "59fb00c5-bfbf-40af-9cf8-62dcdcd37461",
+      "label": "Semantic search is an approach to information r...",
+      "para": "Resources",
+      "tags": [
+        "Semantic search",
+        "Information retrieval",
+        "Search engines",
+        "Artificial intelligence",
+        "Natural language processing"
+      ],
+      "summary": "Semantic search is an approach to information retrieval that seeks to improve search accuracy by understanding the searcher's intent and the contextual meaning of terms.",
+      "content_preview": "# Semantic search - Wikipedia\n\n**URL:** https://en.wikipedia.org/wiki/Semantic_search\n\nSemantic search - Wikipedia\nJump to content\nMain menu\nMain menu\nmove to sidebar\nhide\nNavigation\nMain page\nContent...",
+      "group": "Resources",
+      "color": "#45B7D1",
+      "title": "Summary: Semantic search is an approach to information retrieval that seeks to improve search accuracy by understanding the searcher's intent and the contextual meaning of terms.\n\nPreview: # Semantic search - Wikipedia\n\n**URL:** https://en.wikipedia.org/wiki/Semantic_search\n\nSemantic search - Wikipedia\nJump to content\nMain menu\nMain menu\nmove to sidebar\nhide\nNavigation\nMain page\nContent..."
+    },
+    {
+      "id": "7d0c0da5-3849-47f4-a4a4-ed200380cff6",
+      "label": "RAG allows LLM to search for context in local n...",
+      "para": "Resources",
+      "tags": [
+        "RAG",
+        "LLM",
+        "local notes",
+        "Retrieval-Augmented Generation"
+      ],
+      "summary": "RAG allows LLM to search for context in local notes.",
+      "content_preview": "RAG (Retrieval-Augmented Generation) is great because it lets the LLM search for context in local notes.",
+      "group": "Resources",
+      "color": "#45B7D1",
+      "title": "Summary: RAG allows LLM to search for context in local notes.\n\nPreview: RAG (Retrieval-Augmented Generation) is great because it lets the LLM search for context in local notes."
+    },
+    {
+      "id": "1c6b6871-32cf-42f2-a046-3eab9324c901",
+      "label": "A comprehensive guide to Git and GitHub, coveri...",
+      "para": "Resources",
+      "tags": [
+        "Git",
+        "GitHub",
+        "Version Control",
+        "Collaboration"
+      ],
+      "summary": "A comprehensive guide to Git and GitHub, covering version control, collaboration, and development workflows.",
+      "content_preview": "# About Git - GitHub Docs\n\n**URL:** https://docs.github.com/en/get-started/using-git/about-git\n\nAbout Git - GitHub Docs\nSkip to main content\nGitHub Docs\nVersion:\nFree, Pro, & Team\nSearch or ask Copilo...",
+      "group": "Resources",
+      "color": "#45B7D1",
+      "title": "Summary: A comprehensive guide to Git and GitHub, covering version control, collaboration, and development workflows.\n\nPreview: # About Git - GitHub Docs\n\n**URL:** https://docs.github.com/en/get-started/using-git/about-git\n\nAbout Git - GitHub Docs\nSkip to main content\nGitHub Docs\nVersion:\nFree, Pro, & Team\nSearch or ask Copilo..."
+    },
+    {
+      "id": "2499c1d3-ff35-4848-b418-6a8b86788f26",
+      "label": "Failed to fetch Medium article due to a 403 Cli...",
+      "para": "Resources",
+      "tags": [
+        "error",
+        "url",
+        "fetching",
+        "git"
+      ],
+      "summary": "Failed to fetch Medium article due to a 403 Client Error: Forbidden",
+      "content_preview": "# Error fetching URL\n\n**URL:** https://medium.com/@dipakrasal2009/mastering-git-top-20-git-commands-every-developer-should-know-504b6bb9c646\n\nCould not fetch content from https://medium.com/@dipakrasa...",
+      "group": "Resources",
+      "color": "#45B7D1",
+      "title": "Summary: Failed to fetch Medium article due to a 403 Client Error: Forbidden\n\nPreview: # Error fetching URL\n\n**URL:** https://medium.com/@dipakrasal2009/mastering-git-top-20-git-commands-every-developer-should-know-504b6bb9c646\n\nCould not fetch content from https://medium.com/@dipakrasa..."
+    },
+    {
+      "id": "3ae82d54-9547-4fbd-a763-84a7c0520797",
+      "label": "A comprehensive overview of artificial intellig...",
+      "para": "Resources",
+      "tags": [
+        "Artificial Intelligence",
+        "Machine Learning",
+        "Deep Learning",
+        "Neural Networks",
+        "AI Research"
+      ],
+      "summary": "A comprehensive overview of artificial intelligence, its history, goals, techniques, and applications.",
+      "content_preview": "# Artificial intelligence - Wikipedia\n\n**URL:** https://en.wikipedia.org/wiki/Artificial_intelligence\n\nArtificial intelligence - Wikipedia\nJump to content\nMain menu\nMain menu\nmove to sidebar\nhide\nNavi...",
+      "group": "Resources",
+      "color": "#45B7D1",
+      "title": "Summary: A comprehensive overview of artificial intelligence, its history, goals, techniques, and applications.\n\nPreview: # Artificial intelligence - Wikipedia\n\n**URL:** https://en.wikipedia.org/wiki/Artificial_intelligence\n\nArtificial intelligence - Wikipedia\nJump to content\nMain menu\nMain menu\nmove to sidebar\nhide\nNavi..."
+    },
+    {
+      "id": "420f69a5-a1b9-4cbc-a339-2de923087e76",
+      "label": "Streamlit documentation and resources for data ...",
+      "para": "Resources",
+      "tags": [
+        "Streamlit",
+        "Documentation",
+        "API",
+        "Tutorials",
+        "Community"
+      ],
+      "summary": "Streamlit documentation and resources for data scientists and AI/ML engineers",
+      "content_preview": "# Streamlit documentation\n\n**URL:** https://docs.streamlit.io/\n\nStreamlit documentation\nDocumentation\nsearch\nSearch\nrocket_launch\nGet started\nInstallation\nadd\nFundamentals\nadd\nFirst steps\nadd\ncode\nDev...",
+      "group": "Resources",
+      "color": "#45B7D1",
+      "title": "Summary: Streamlit documentation and resources for data scientists and AI/ML engineers\n\nPreview: # Streamlit documentation\n\n**URL:** https://docs.streamlit.io/\n\nStreamlit documentation\nDocumentation\nsearch\nSearch\nrocket_launch\nGet started\nInstallation\nadd\nFundamentals\nadd\nFirst steps\nadd\ncode\nDev..."
+    },
+    {
+      "id": "4b5bfe1a-68b6-45d9-ad0c-7320f8caca48",
+      "label": "A resume analysis and tracking tool",
+      "para": "Resources",
+      "tags": [
+        "resume",
+        "jobsearch",
+        "career"
+      ],
+      "summary": "A resume analysis and tracking tool",
+      "content_preview": "# Resumind\n\n**URL:** https://aianalyzer-vert.vercel.app/\n\nResumind\nRESUMIND\nUpload Resume\nTrack Your Applications & Resume Ratings\nNo resumes found. Upload your first resume to get feedback.\nUpload Re...",
+      "group": "Resources",
+      "color": "#45B7D1",
+      "title": "Summary: A resume analysis and tracking tool\n\nPreview: # Resumind\n\n**URL:** https://aianalyzer-vert.vercel.app/\n\nResumind\nRESUMIND\nUpload Resume\nTrack Your Applications & Resume Ratings\nNo resumes found. Upload your first resume to get feedback.\nUpload Re..."
+    },
+    {
+      "id": "52b8d023-aeab-4c74-bdc0-72893f1fd605",
+      "label": "A task planner application",
+      "para": "Resources",
+      "tags": [
+        "iTask",
+        "task planner",
+        "URL",
+        "todo list"
+      ],
+      "summary": "A task planner application",
+      "content_preview": "# iTask-Your Task Planner\n\n**URL:** https://todo-crud-react-eta.vercel.app/\n\niTask-Your Task Planner",
+      "group": "Resources",
+      "color": "#45B7D1",
+      "title": "Summary: A task planner application\n\nPreview: # iTask-Your Task Planner\n\n**URL:** https://todo-crud-react-eta.vercel.app/\n\niTask-Your Task Planner"
+    },
+    {
+      "id": "62539191-ee83-4a10-ad53-f116045250a0",
+      "label": "A list of frequently used Git commands with exa...",
+      "para": "Resources",
+      "tags": [
+        "Git",
+        "Version Control",
+        "Software Development",
+        "Programming",
+        "Web Development"
+      ],
+      "summary": "A list of frequently used Git commands with examples and explanations.",
+      "content_preview": "# Medium\n\n**URL:** https://agirlcodes.medium.com/my-most-used-git-commands-ff031b2c77c4\n\nMedium\nMy Most Used Git Commands. In this article, I share git commands I\u2026 | by Kelechi Ogbonna | Medium\nSitema...",
+      "group": "Resources",
+      "color": "#45B7D1",
+      "title": "Summary: A list of frequently used Git commands with examples and explanations.\n\nPreview: # Medium\n\n**URL:** https://agirlcodes.medium.com/my-most-used-git-commands-ff031b2c77c4\n\nMedium\nMy Most Used Git Commands. In this article, I share git commands I\u2026 | by Kelechi Ogbonna | Medium\nSitema..."
+    },
+    {
+      "id": "79b85f0e-b419-47ec-80c6-67c4408ac422",
+      "label": "A Git trick to add forgotten files to the last ...",
+      "para": "Resources",
+      "tags": [
+        "git",
+        "version control",
+        "commit",
+        "amend"
+      ],
+      "summary": "A Git trick to add forgotten files to the last commit.",
+      "content_preview": "Git trick: use 'git commit --amend --no-edit' to add forgotten files to the last commit.",
+      "group": "Resources",
+      "color": "#45B7D1",
+      "title": "Summary: A Git trick to add forgotten files to the last commit.\n\nPreview: Git trick: use 'git commit --amend --no-edit' to add forgotten files to the last commit."
+    },
+    {
+      "id": "2026-07-23_7dbb9385",
+      "label": "2026-07-23_7dbb9385",
+      "para": "Resources",
+      "tags": [],
+      "summary": "2026-07-23_7dbb9385",
+      "content_preview": "",
+      "group": "Resources",
+      "color": "#45B7D1",
+      "title": "Summary: 2026-07-23_7dbb9385\n\nPreview: "
+    },
+    {
+      "id": "82b9f76b-5f6a-43ad-8e90-36a91aa33bc9",
+      "label": "Streamlit framework for rapid Python data appli...",
+      "para": "Resources",
+      "tags": [
+        "Streamlit",
+        "Python",
+        "Data Applications",
+        "Prototyping"
+      ],
+      "summary": "Streamlit framework for rapid Python data application prototyping",
+      "content_preview": "Streamlit is a fantastic framework for rapidly prototyping Python data applications.",
+      "group": "Resources",
+      "color": "#45B7D1",
+      "title": "Summary: Streamlit framework for rapid Python data application prototyping\n\nPreview: Streamlit is a fantastic framework for rapidly prototyping Python data applications."
+    },
+    {
+      "id": "b1e20699-dd82-406a-83da-06409ebd5d52",
+      "label": "Himanshu Yadav's LinkedIn profile",
+      "para": "Resources",
+      "tags": [
+        "LinkedIn",
+        "Professional",
+        "Profile"
+      ],
+      "summary": "Himanshu Yadav's LinkedIn profile",
+      "content_preview": "# Untitled\n\n**URL:** https://www.linkedin.com/in/himanshuyadavwork/",
+      "group": "Resources",
+      "color": "#45B7D1",
+      "title": "Summary: Himanshu Yadav's LinkedIn profile\n\nPreview: # Untitled\n\n**URL:** https://www.linkedin.com/in/himanshuyadavwork/"
+    },
+    {
+      "id": "bb86c73c-d4be-4c00-8bc5-515d07a68a81",
+      "label": "Overview of the PARA method",
+      "para": "Resources",
+      "tags": [
+        "PARA method",
+        "information organization"
+      ],
+      "summary": "Overview of the PARA method",
+      "content_preview": "The PARA method organizes information into Projects, Areas, Resources, and Archives.",
+      "group": "Resources",
+      "color": "#45B7D1",
+      "title": "Summary: Overview of the PARA method\n\nPreview: The PARA method organizes information into Projects, Areas, Resources, and Archives."
+    },
+    {
+      "id": "0f3512bc-87a0-4144-98bb-0476ee784269",
+      "label": "LinkedIn profile URL",
+      "para": "Resources",
+      "tags": [
+        "LinkedIn",
+        "Contact Info",
+        "Social Media"
+      ],
+      "summary": "LinkedIn profile URL",
+      "content_preview": "Hey Save my LinkedIn as :\nMy LinkedIn is https://www.linkedin.com/in/himanshuyadavwork/",
+      "group": "Resources",
+      "color": "#45B7D1",
+      "title": "Summary: LinkedIn profile URL\n\nPreview: Hey Save my LinkedIn as :\nMy LinkedIn is https://www.linkedin.com/in/himanshuyadavwork/"
+    },
+    {
+      "id": "3a301982-b5c7-4c0f-9462-abd4d826d8e6",
+      "label": "Securing personal Github account",
+      "para": "Resources",
+      "tags": [
+        "github",
+        "account",
+        "security"
+      ],
+      "summary": "Securing personal Github account",
+      "content_preview": "Save my Github Account :\nPiro-Programmer as an UserName",
+      "group": "Resources",
+      "color": "#45B7D1",
+      "title": "Summary: Securing personal Github account\n\nPreview: Save my Github Account :\nPiro-Programmer as an UserName"
+    }
+  ],
+  "edges": [
+    {
+      "source": "1c6b6871-32cf-42f2-a046-3eab9324c901",
+      "target": "62539191-ee83-4a10-ad53-f116045250a0",
+      "from": "1c6b6871-32cf-42f2-a046-3eab9324c901",
+      "to": "62539191-ee83-4a10-ad53-f116045250a0",
+      "weight": 1.0,
+      "type": "wikilink"
+    },
+    {
+      "source": "4b5bfe1a-68b6-45d9-ad0c-7320f8caca48",
+      "target": "f9a5dae9-0d34-40a5-a289-c59e4467c807",
+      "from": "4b5bfe1a-68b6-45d9-ad0c-7320f8caca48",
+      "to": "f9a5dae9-0d34-40a5-a289-c59e4467c807",
+      "weight": 1.0,
+      "type": "wikilink"
+    },
+    {
+      "source": "62539191-ee83-4a10-ad53-f116045250a0",
+      "target": "79b85f0e-b419-47ec-80c6-67c4408ac422",
+      "from": "62539191-ee83-4a10-ad53-f116045250a0",
+      "to": "79b85f0e-b419-47ec-80c6-67c4408ac422",
+      "weight": 1.0,
+      "type": "wikilink"
+    }
+  ],
+  "metadata": {
+    "generated_at": "2026-07-26T16:44:06.906712",
+    "node_count": 21,
+    "edge_count": 3
+  }
+}
