@@ -4,6 +4,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+def get_env_var(key, default=None):
+    try:
+        import streamlit as st
+        if key in st.secrets:
+            return st.secrets[key]
+    except Exception:
+        pass
+    return os.getenv(key, default)
+
 # Paths
 RAW_DIR = "raw"
 WIKI_DIR = "wiki"
@@ -12,9 +21,9 @@ EMBEDDINGS_DIR = "data/embeddings"
 GRAPH_PATH = "data/graph.json"
 
 # LLM provider
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "groq")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-XAI_API_KEY = os.getenv("XAI_API_KEY")
+LLM_PROVIDER = get_env_var("LLM_PROVIDER", "groq")
+GROQ_API_KEY = get_env_var("GROQ_API_KEY")
+XAI_API_KEY = get_env_var("XAI_API_KEY")
 GROQ_MODEL = "llama-3.1-8b-instant"
 GROK_MODEL = "grok-2-1212"
 

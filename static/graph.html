@@ -455,20 +455,8 @@
 
         async function initGraph() {
             try {
-                // Try fetching from /data/graph.json or ../data/graph.json
-                let response;
-                try {
-                    response = await fetch('/data/graph.json');
-                    if (!response.ok) throw new Error('Not found');
-                } catch {
-                    response = await fetch('../data/graph.json');
-                }
-
-                if (!response.ok) {
-                    throw new Error("Failed to fetch graph.json");
-                }
-
-                rawGraphData = await response.json();
+                // Injected by lib/graph_view.py
+                rawGraphData = GRAPH_DATA_PLACEHOLDER;
                 
                 // Update stats bar
                 document.getElementById('node-count').innerText = rawGraphData.metadata.node_count || rawGraphData.nodes.length;

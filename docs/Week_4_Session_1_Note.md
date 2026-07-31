@@ -331,9 +331,7 @@ Context
 
 - 7. URL
 
-Push the project to github
-
-- make sure all unnecessary files are not pushed
+- Push the project to github make sure all unnecessary files are not pushed
 
 - 8. Implement Sub-Phase 2.1 using the @docs/Implementation-plan.md
 
@@ -355,8 +353,10 @@ Push the project to github
 
 - 16. Stop the project
 
-## Implementation plan
+- 17. Generate a deployment-plan.md for deploying this project on streamlit
 
+
+## SecondSelf — Phase-Wise Implementation Plan
 
 A step-by-step build guide for SecondSelf, derived from PROBLEM_STATEMENT.md and architecture.md. Each phase is self-contained, testable on real data, and its output feeds the next phase.
 
@@ -374,33 +374,77 @@ Total timeline: 4 weeks (one phase per week).
 
 ## Phase Overview
 
-| Phas | Name | Badge | Primary Output |
-| --- | --- | --- | --- |
-| e |   |   |   |
-| 0 | Foundation | — | Repo scaffold, deps, shared libs |
-| 1 | The Archivist | 🏅 The Archivist | capture.py + 10+ items in raw/ |
-| 2 | The Librarian | 🏅 The Librarian | Classified + linked wiki/ (15+ items) |
-| 3 | The | 🏅 The | graph.json + interactive graph |
-|   | Cartographer | Cartographer |   |
-| 4 | The Oracle | 🏅 The Oracle | ask() + Streamlit app on public URL |
+Phas
+
+e
+
+0
+
+1
+
+2
+
+3
+
+Cartographer
+
+4
 
 Phase 0 ──▶ Phase 1 ──▶ Phase 2 ──▶ Phase 3 ──▶ Phase 4
 
 scaffold capture classify
 
-graph
-
-RAG +
-
 raw/
-
-link wiki
-
-visualize deploy
 
 Phase 0 — Foundation (Day 0)
 
 Goal: Scaffold the repo so every later phase has a consistent home for data and shared code.
+
+Name
+
+Badge
+
+Primary Output
+
+Foundation
+
+—
+
+Repo scaffold, deps, shared libs
+
+The Archivist
+
+🏅 The Archivist
+
+capture.py + 10+ items in raw/
+
+The Librarian
+
+🏅 The Librarian
+
+Classified + linked wiki/ (15+ items)
+
+The
+
+graph.json + interactive graph
+
+🏅 The
+
+Cartographer
+
+The Oracle
+
+ask() + Streamlit app on public URL
+
+🏅 The Oracle
+
+graph
+
+RAG +
+
+link wiki
+
+visualize deploy
 
 ## Tasks
 
@@ -409,17 +453,13 @@ Goal: Scaffold the repo so every later phase has a consistent home for data and 
 secondself/
 
 
-│ ├── Areas/ │ ├── Resources/ │ └── Archives/ ├── data/ ├── lib/ └── static/
+├── wiki/ │ ├── Projects/ │ ├── Areas/ │ ├── Resources/ │ └── Archives/ ├── data/ ├── lib/ └── static/
 
 [ ] 0.2 Create requirements.txt: streamlit>=1.32 groq>=0.4 sentence-transformers>=2.3 numpy>=1.24 pyyaml>=6.0 pypdf>=4.0 requests>=2.31 beautifulsoup4>=4.12 python-dotenv>=1.0
 
-[ ] 0.3 Create virtual environment and install dependencies: python -m venv .venv source .venv/bin/activate # Windows: .venv\Scripts\activate
+[ ] 0.3 Create virtual environment and install dependencies: python -m venv .venv source .venv/bin/activate # Windows: .venv\Scripts\activate pip install -r requirements.txt
 
-pip install -r requirements.txt
-
-[ ] 0.4 Create .env.example and .gitignore: # .env.example GROQ_API_KEY=your_key_here # .gitignore (minimum) .venv/ .env data/embeddings.pkl __pycache__/ *.pyc
-
-.DS_Store
+[ ] 0.4 Create .env.example and .gitignore: # .env.example GROQ_API_KEY=your_key_here # .gitignore (minimum) .venv/ .env data/embeddings.pkl __pycache__/ *.pyc .DS_Store
 
 [ ] 0.5 Implement lib/models.py — shared dataclasses:
 
@@ -435,17 +475,15 @@ CaptureRes ult
 
 id, path, type
 
-WikiNote
 
-id, raw_id, para, tags, summary, created, links, body
-
-
-| GraphNode | id, label, para, tags, summary, content_preview, group |
+| WikiNote | id, raw_id, para, tags, summary, created, links, body |
 | --- | --- |
+| GraphNode | id, label, para, tags, summary, content_preview, group |
 | GraphEdge | source, target, weight, type |
-| AskResult | answer, sources |
 
-## [ ] 0.6 Implement lib/storage.py — filesystem helpers:
+AskResult
+
+answer, sources
 
 | [ ] 0.6 Implement lib/storage.py — filesystem helpers: |   |
 | --- | --- |
@@ -460,13 +498,9 @@ id, raw_id, para, tags, summary, created, links, body
 | content_hash(data) | SHA-256 for dedup / change |
 |   | detection |
 
-[ ] 0.7 Initialize data/index.json:
+[ ] 0.7 Initialize data/index.json: {
 
-{
-
-"raw_processed": {},
-
-"last_graph_build": null
+"raw_processed": {}, "embeddings_version": "all-MiniLM-L6-v2", "last_graph_build": null
 
 }
 
@@ -476,8 +510,8 @@ id, raw_id, para, tags, summary, created, links, body
 
 - [ ] All directories exist; wiki/ has four PARA subfolders
 
-## Deliverable
 
+Deliverable
 
 Repo scaffold with shared models and storage layer — no user-facing features yet.
 
@@ -487,7 +521,7 @@ Goal: One command captures any note, link, or file into raw/ with timestamp + un
 
 Badge: 🏅 The Archivist
 
-## Tasks
+Tasks
 
 - [ ] 1.1 Implement capture.py core functions:
 
@@ -512,9 +546,13 @@ Each function must:
 
 - Print confirmation: Captured → raw/2026-07-06_a1b2c3d4
 
-- [ ] 1.2 Implement CLI with argparse:
+[ ] 1.2 Implement CLI with argparse:
 
-python capture.py note "Remember to review embeddings paper" python capture.py link "https://arxiv.org/abs/..." python capture.py file ./documents/resume.pdf
+python capture.py note "Remember to review embeddings paper"
+
+python capture.py link "https://arxiv.org/abs/..."
+
+python capture.py file ./documents/resume.pdf
 
 python capture.py
 
@@ -526,15 +564,17 @@ python capture.py
 | --- | --- |
 | File does not | Print error, exit code 1 |
 | exist |   |
+
+
 | Empty note text | Reject with message |
-
-
-| Binary file | Copy as-is; record original_filename in meta |
 | --- | --- |
+| Binary file | Copy as-is; record original_filename in meta |
 | Duplicate | Warn (hash check); still allow capture |
 | content |   |
 
-[ ] 1.4 Capture 10+ real items from your own scattered information: Suggested mix:
+## [ ] 1.4 Capture 10+ real items from your own scattered information:
+
+Suggested mix:
 
 - 4–5 text notes (ideas, todos, journal snippets)
 
@@ -564,63 +604,61 @@ python capture.py
 
 \# Demo: capture three types in one session python capture.py note "Career goal: transition to ML engineering by Q4" python capture.py link "https://huggingface.co/sentence-transformers" python capture.py file ~/Downloads/some-paper.pdf ls raw/ # should show 10+ folders
 
-Phase 2 — The Librarian (Week 2)
+## Phase 2 — The Librarian (Week 2)
 
 Goal: Auto-classify raw captures with PARA + tags + summary, then auto-link related notes via embeddings.
+
 
 Badge: 🏅 The Librarian
 
 Sub-Phase 2.1 — Auto-Classify (Days 1–3)
 
+- [ ] 2.1.1 Sign up for Groq and add GROQ_API_KEY to .env [URL 🔗](https://console.groq.com/)
 
-● [ ] 2.1.1 Sign up for Groq and add GROQ_API_KEY to .env [URL 🔗](https://console.groq.com/)
-
-[ ] 2.1.2 Implement lib/llm.py:
+- [ ] 2.1.2 Implement lib/llm.py:
 
 Function
 
 Purpose
 
-call_llm(prompt, system="")
-
-Groq API wrapper with retry
-
-classify_content(text)
-
-Returns {para, tags, summary} JSON
-
-synthesize_answer(context, question)
-
-RAG answer (used in Phase 4)
+| Function | Purpose |
+| --- | --- |
+| call_llm(prompt, system="") | Groq API wrapper with retry |
+| classify_content(text) | Returns {para, tags, summary} |
+|   | JSON |
+| synthesize_answer(context, question) | RAG answer (used in Phase 4) |
 
 Model: llama-3.1-8b-instant
 
-[ ] 2.1.3 Implement text extraction helpers in lib/storage.py or lib/extract.py:
+- [ ] 2.1.3 Implement text extraction helpers in lib/storage.py or lib/extract.py:
 
-## Source type Extraction method
+| Source | Extraction method |
+| --- | --- |
+| type |   |
+| note | Read content.md directly |
+| link | requests + beautifulsoup4 strip HTML; fallback to URL string |
+| file (PDF) | pypdf text extraction; fallback to filename |
 
-note
+## [ ] 2.1.4 Implement classify.py:
 
-link
+For each raw/ item not in index.json["raw_processed"]: extract text → classify_content() → write wiki/{para}/{id}.md → update index.json Wiki note format:
 
-file (PDF)
+\---
 
-[ ] 2.1.4 Implement classify.py: For each raw/ item not in index.json["raw_processed"]: extract text → classify_content() → write wiki/{para}/{id}.md → update index.json
+id: a1b2c3d4 raw_id: 2026-07-06_a1b2c3d4 para: Projects tags: [ml, career] summary: "One-line summary" created: 2026-07-06T22:30:00Z links: []
 
-Wiki note format: --- id: a1b2c3d4 raw_id: 2026-07-06_a1b2c3d4 para: Projects tags: [ml, career] summary: "One-line summary" created: 2026-07-06T22:30:00Z links: [] ---
+\---
 
 {cleaned body content}
 
-[ ] 2.1.5 Run classifier on all Week 1 captures: python classify.py
 
-● [ ] 2.1.6 Manually spot-check 5 notes — verify PARA categories make sense
+[ ] 2.1.5 Run classifier on all Week 1 captures:
 
-Read content.md directly
+python classify.py
 
-requests + beautifulsoup4 strip HTML; fallback to URL string
+- [ ] 2.1.6 Manually spot-check 5 notes — verify PARA categories make sense
 
-pypdf text extraction; fallback to filename
-
+Sub-Phase 2.2 — Auto-Link (Days 4–7)
 
 - [ ] 2.2.1 Implement lib/embeddings.py:
 
@@ -632,7 +670,7 @@ pypdf text extraction; fallback to filename
 | cosine_similarity(a, b) | Similarity score |
 | load_embeddings() / save_embeddings() | data/embeddings.pkl |
 
-- [ ] 2.2.2 Implement link.py:
+[ ] 2.2.2 Implement link.py:
 
 For each wiki note (new or changed):
 
@@ -657,14 +695,12 @@ save embedding to embeddings.pkl
 | 0.75 | Start here — balanced |
 | 0.80 | Fewer, higher-confidence links |
 
-[ ] 2.2.4 Implement pipeline.py orchestrator: python pipeline.py classify # classify only python pipeline.py link # link only
+[ ] 2.2.4 Implement pipeline.py orchestrator: python pipeline.py classify # classify only python pipeline.py link # link only python pipeline.py process # classify + link
 
-python pipeline.py process # classify + link
 
 - [ ] 2.2.5 Capture 5+ additional real items, run full pipeline → 15+ total in wiki/
 
-File Deliverables
-
+## File Deliverables
 
 | File | Description |
 | --- | --- |
@@ -703,19 +739,16 @@ Goal: Convert the linked wiki into a force-directed interactive graph you can ex
 
 Badge: 🏅 The Cartographer
 
+\# wikilinks present
+
+
 Sub-Phase 3.1 — Graph Data Model (Days 1–3)
 
 - [ ] 3.1.1 Implement build_graph.py:
 
-Step
-
-\# wikilinks present
-
-Logic
-
-
-| Parse | One node per wiki/**/*.md |
+| Step | Logic |
 | --- | --- |
+| Parse | One node per wiki/**/*.md |
 | nodes |   |
 | Parse | From links[] frontmatter + [[id]] in body |
 | edges |   |
@@ -723,10 +756,7 @@ Logic
 | te |   |
 | Enrich | label = summary, group = para, content_preview = first 200 chars |
 | nodes |   |
-
-Export
-
-Write data/graph.json
+| Export | Write data/graph.json |
 
 - [ ] 3.1.2 Validate graph.json schema:
 
@@ -762,21 +792,20 @@ Sub-Phase 3.2 — Interactive Graph (Days 4–7)
 
 - [ ] 3.2.2 Physics config starting point:
 
-```
 physics: {
-barnesHut: { gravitationalConstant: -8000, springLength: 150 },
-stabilization: { iterations: 200 }
-}
-```
 
-- [ ] 3.2.3 Test graph standalone in browser:
+barnesHut: { gravitationalConstant: -8000, springLength: 150 }, stabilization: { iterations: 200 }
+
+
+}
+
+[ ] 3.2.3 Test graph standalone in browser:
 
 python -m http.server 8000
 
 \# Open http://localhost:8000/static/graph.html
 
-
-## [ ] 3.2.4 Verify interactions:
+- [ ] 3.2.4 Verify interactions:
 
 | Interacti | Expected |
 | --- | --- |
@@ -813,18 +842,18 @@ python -m http.server 8000
 
 ## Ship Checkpoint
 
-python build_graph.py python -m http.server 8000 # Open graph in browser — explore your knowledge brain
 
+python build_graph.py python -m http.server 8000 # Open graph in browser — explore your knowledge brain
 
 Phase 4 — The Oracle (Week 4)
 
-Goal: Ask questions in plain English, get answers from your notes, and deploy everything as a public Streamlit app.
-
 Badge: 🏅 The Oracle
+
+Goal: Ask questions in plain English, get answers from your notes, and deploy everything as a public Streamlit app.
 
 Sub-Phase 4.1 — Ask Your Brain (Days 1–3)
 
-[x] 4.1.1 Implement ask.py:
+[ ] 4.1.1 Implement ask.py:
 
 def ask(question: str, top_k: int = 5) -> AskResult:
 
@@ -842,38 +871,46 @@ def ask(question: str, top_k: int = 5) -> AskResult:
 
 - 6. Return { answer, sources: [{id, summary, relevance_score, para}] }
 
-## [x] 4.1.2 RAG prompt template:
+- [ ] 4.1.2 RAG prompt template:
 
 You are SecondSelf, answering from the user's personal knowledge base. Use ONLY the provided notes. If the answer isn't in the notes, say so. Cite sources as [note-id].
 
-Notes:
+## Notes:
 
 {retrieved_notes}
 
 Question: {question}
 
-- [x] 4.1.3 Guardrails:
+- [ ] 4.1.3 Guardrails:
 
-| Setting | Value |
-| --- | --- |
-| top_k | 5 (default) |
-| Temperature | 0.3 |
-| Max context | ~6000 tokens (truncate long notes) |
-| No relevant | Return "I don't have notes about that" |
-| notes |   |
+Setting
 
-[x] 4.1.4 Test with 5+ real questions about your captured notes:
+top_k
 
-python ask.py "What are my career goals?"
+Temperature
 
-python ask.py "What ML resources have I saved?"
+Max context
 
-python ask.py "Summarize my active projects"
+No relevant
 
+notes
+
+Value
+
+5 (default)
+
+0.3
+
+~6000 tokens (truncate long notes)
+
+Return "I don't have notes about that"
+
+
+[ ] 4.1.4 Test with 5+ real questions about your captured notes: python ask.py "What are my career goals?" python ask.py "What ML resources have I saved?" python ask.py "Summarize my active projects"
 
 Sub-Phase 4.2 — Streamlit App + Deployment (Days 4–7)
 
-[x] 4.2.1 Implement app.py layout:
+[ ] 4.2.1 Implement app.py layout:
 
 │ 🧠 SecondSelf
 
@@ -889,7 +926,7 @@ Sub-Phase 4.2 — Streamlit App + Deployment (Days 4–7)
 
 │ Sidebar: Capture | Process | Stats
 
-- [x] 4.2.2 Wire components:
+[ ] 4.2.2 Wire components:
 
 UI Element
 
@@ -915,7 +952,7 @@ Refresh
 
 button
 
-[x] 4.2.3 Add caching: @st.cache_resource def load_embeddings(): ...
+[ ] 4.2.3 Add caching: @st.cache_resource def load_embeddings(): ...
 
 @st.cache_data def load_graph(): ...
 
@@ -929,10 +966,14 @@ Count nodes/edges from graph.json
 
 Re-run build_graph.py, reload component
 
-- [x] 4.2.4 Test locally: streamlit run app.py ● Verify full flow: capture → process → graph updates → ask returns answer.
+
+## [ ] 4.2.4 Test locally:
+
+streamlit run app.py
+
+- Verify full flow: capture → process → graph updates → ask returns answer.
 
 - [ ] 4.2.5 Write README.md:
-
 
 - 1. Project description + screenshot
 
@@ -962,12 +1003,25 @@ Re-run build_graph.py, reload component
 
 ## S Action
 
-| 1 | Open public URL |
-| --- | --- |
-| 2 | Graph renders with real nodes |
-| 3 | Ask a question → get synthesized answer |
-| 4 | Capture a new note via sidebar |
-| 5 | Process → graph updates |
+1
+
+Open public URL
+
+2
+
+Graph renders with real nodes
+
+3
+
+Ask a question → get synthesized answer
+
+4
+
+Capture a new note via sidebar
+
+5
+
+Process → graph updates
 
 ## File Deliverables
 
@@ -978,12 +1032,12 @@ Re-run build_graph.py, reload component
 | README.m | Setup + usage docs |
 | d |   |
 
+
 Live URL
 
 https://secondself-{user}.streamlit.app
 
 ## Acceptance Criteria
-
 
 - [ ] ask() returns answers synthesized from your own notes (retrieval + LLM)
 
@@ -1015,11 +1069,7 @@ Capture → Classify → Link → Graph → Ask → Deploy
 
 Sta
 
-t
-
-u
-
-s
+t u s
 
 Capture Pipeline (Phase 1)
 
@@ -1029,11 +1079,14 @@ Living Brain (Phase 3)
 
 SecondSelf Deployment (Phase 4)
 
-## Dependency Map (Build Order)
+Dependency Map (Build Order)
 
-Phase 0: lib/models.py, lib/storage.py, requirements.txt │
+Phase 0: lib/models.py, lib/storage.py, requirements.txt
+
+│
 
 Phase 1: capture.py │
+
 
 Phase 2: lib/llm.py → classify.py
 
@@ -1041,8 +1094,7 @@ lib/embeddings.py → link.py → pipeline.py
 
 │
 
-
-Phase 3: build_graph.py → static/graph.html
+Phase 3: build_graph.py → static/graph.html │
 
 Phase 4: ask.py → app.py → deploy
 
@@ -1067,10 +1119,12 @@ Quick Reference — Commands
 
 \# Phase 2 python classify.py python link.py python pipeline.py process
 
-\# Phase 3 python build_graph.py python -m http.server 8000 # preview graph
+\# Phase 3 python build_graph.py
+
+
+python -m http.server 8000 # preview graph
 
 \# Phase 4 python ask.py "What are my career goals?" streamlit run app.py
-
 
 References
 
