@@ -6,7 +6,7 @@ import frontmatter
 import lib.config as config
 from lib.embeddings import embed_text, cosine_similarity, load_embeddings, save_embeddings
 
-EMBEDDINGS_FILE = os.path.join(config.DATA_DIR, "embeddings.pkl")
+
 
 def get_all_wiki_notes():
     search_pattern = os.path.join(config.WIKI_DIR, "**", "*.md")
@@ -15,8 +15,9 @@ def get_all_wiki_notes():
 def process_unlinked():
     print("Starting auto-linking pipeline...")
     
+    embeddings_file = os.path.join(config.DATA_DIR, "embeddings.pkl")
     # Load existing embeddings
-    embeddings_db = load_embeddings(EMBEDDINGS_FILE)
+    embeddings_db = load_embeddings(embeddings_file)
     notes = get_all_wiki_notes()
     
     new_embeddings_added = False
@@ -48,7 +49,7 @@ def process_unlinked():
             new_embeddings_added = True
             
     if new_embeddings_added:
-        save_embeddings(embeddings_db, EMBEDDINGS_FILE)
+        save_embeddings(embeddings_db, embeddings_file)
         
     # Phase 2: Compute similarities and link
     links_added = 0

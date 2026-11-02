@@ -3,19 +3,21 @@ import json
 from datetime import datetime
 import lib.config as config
 from lib.io import ensure_dir, write_json
-from lib.llm import classify_content
+from lib.llm import classify_content, LLMError
 
-INDEX_FILE = "data/index.json"
+def get_index_file():
+    return os.path.join(config.DATA_DIR, "index.json")
 
 def load_index() -> dict:
-    if os.path.exists(INDEX_FILE):
-        with open(INDEX_FILE, "r", encoding="utf-8") as f:
+    index_file = get_index_file()
+    if os.path.exists(index_file):
+        with open(index_file, "r", encoding="utf-8") as f:
             return json.load(f)
     return {"raw_processed": []}
 
 def save_index(index: dict):
     ensure_dir(config.DATA_DIR)
-    write_json(index, INDEX_FILE)
+    write_json(index, get_index_file())
 
 def main():
     print("Starting classification pipeline...")
@@ -52,8 +54,16 @@ def main():
         with open(content_path, "r", encoding="utf-8", errors="ignore") as f:
             content = f.read()
             
-        # Classify via LLM
-        result = classify_content(content)
+        if not content.strip():
+            print(f"  Skipping {folder} (empty capture)")
+            continue
+
+        # Classify via LLM; leave the item unprocessed on failure so the next run retries it
+        try:
+            result = classify_content(content)
+        except LLMError as e:
+            print(f"  Skipping {folder} (LLM error: {e})")
+            continue
         para = result.get("para", "Resources")
         tags = result.get("tags", [])
         summary = result.get("summary", "No summary.")

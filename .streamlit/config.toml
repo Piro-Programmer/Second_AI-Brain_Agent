@@ -1,6 +1,10 @@
 [server]
 fileWatcherType = "none"
 
+[client]
+# Never show stack traces or file paths to visitors
+showErrorDetails = false
+
 [browser]
 gatherUsageStats = false
 

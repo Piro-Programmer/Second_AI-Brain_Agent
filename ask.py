@@ -7,7 +7,7 @@ import lib.config as config
 from lib.embeddings import embed_text, cosine_similarity, load_embeddings
 from lib.llm import synthesize_answer
 
-EMBEDDINGS_FILE = os.path.join(config.DATA_DIR, "embeddings.pkl")
+
 
 def get_wiki_note_by_id() -> dict:
     """Scan wiki directory and return mapping of note_id -> {path, post, summary, para}."""
@@ -32,7 +32,8 @@ def get_wiki_note_by_id() -> dict:
 
 def retrieve_relevant_notes(question: str, top_k: int = 5) -> list[dict]:
     """Retrieve top-K notes exceeding similarity floor for a question."""
-    embeddings_db = load_embeddings(EMBEDDINGS_FILE)
+    embeddings_file = os.path.join(config.DATA_DIR, "embeddings.pkl")
+    embeddings_db = load_embeddings(embeddings_file)
     if not embeddings_db:
         print("Warning: No embeddings found in embeddings.pkl. Run pipeline link or process first.")
         return []

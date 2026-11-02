@@ -18,13 +18,17 @@ dist/
 .vscode/
 .idea/
 
-# Project Specific Data
-# raw/*
-# !raw/.gitkeep
-# wiki/*
-# !wiki/.gitkeep
-# data/embeddings/*
-# !data/embeddings/.gitkeep
-# Ignore generated data, except demo graph if needed
-# data/*.json
-# data/embeddings.pkl
+# Personal notes and generated data (each user's brain now lives under users/)
+wiki/*
+!wiki/.gitkeep
+!wiki/.obsidian/
+data/*.json
+data/*.pkl
+
+# Local user data, secrets and logs
+users.yaml
+users/
+raw/
+*.log
+.streamlit/secrets.toml
+

@@ -11,7 +11,7 @@ SecondSelf demonstrates end-to-end full-stack AI engineering. It showcases a rob
 
 **Key Technical Highlights:**
 - **Zero-Friction Ingestion Pipeline:** A robust CLI captures raw unstructured text, scrapes URLs (handling HTML sanitization via `BeautifulSoup`), and extracts text layers from PDFs (`pypdf`).
-- **Autonomous Organization (PARA Method):** Leverages `Groq` or `xAI` models to classify raw inputs into actionable PARA categories (Projects, Areas, Resources, Archives) with auto-generated contextual tags and summaries.
+- **Autonomous Organization (PARA Method):** Leverages `Groq`-hosted models (with automatic fallback) to classify raw inputs into actionable PARA categories (Projects, Areas, Resources, Archives) with auto-generated contextual tags and summaries.
 - **Semantic Auto-Linking:** Computes local, high-dimensional embeddings via `sentence-transformers` to automatically discover and link semantically related notes, building a true knowledge graph without manual tagging.
 - **Interactive Knowledge Visualization:** Parses frontmatter and markdown wikilinks to render a dynamic, force-directed graph of the user's brain topology.
 - **Retrieval-Augmented Generation (RAG):** Answers natural language questions by retrieving contextually relevant notes and synthesizing them into highly accurate, sourced answers.
@@ -26,8 +26,8 @@ SecondSelf demonstrates end-to-end full-stack AI engineering. It showcases a rob
 Clone the repository and set up your virtual environment:
 
 ```bash
-git clone https://github.com/Piro-Programmer/Second_AI-Brain.git
-cd Second_AI-Brain
+git clone https://github.com/Piro-Programmer/Second_AI-Brain_Agent.git
+cd Second_AI-Brain_Agent
 
 # Create and activate a virtual environment
 python -m venv .venv
@@ -53,7 +53,7 @@ copy .env.example .env
 cp .env.example .env
 ```
 
-Open `.env` in your text editor and set your preferred LLM provider (`groq` or `grok`) along with the respective API key.
+Open `.env` in your text editor and add your `GROQ_API_KEY`. Optionally set `GROQ_MODEL` / `GROQ_FALLBACK_MODEL` if Groq retires the default models.
 
 ### 3. Running the Pipeline
 

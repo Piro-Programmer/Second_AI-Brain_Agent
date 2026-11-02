@@ -147,8 +147,10 @@ def build_graph() -> dict:
         "metadata": metadata
     }
 
-def export_graph(output_path: str = config.GRAPH_PATH) -> str:
+def export_graph(output_path: str = None) -> str:
     """Export clean graph.json with nodes, edges, and metadata block."""
+    if output_path is None:
+        output_path = config.GRAPH_PATH
     graph_data = build_graph()
     write_json(graph_data, output_path)
     print(f"Graph exported to {output_path} ({graph_data['metadata']['node_count']} nodes, {graph_data['metadata']['edge_count']} edges)")

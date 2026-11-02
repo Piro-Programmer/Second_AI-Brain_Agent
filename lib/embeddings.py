@@ -33,13 +33,17 @@ def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
 
     return np.dot(a, b) / (norm_a * norm_b)
 
-def load_embeddings(filepath: str) -> dict:
+def load_embeddings(filepath: str = None) -> dict:
+    if filepath is None:
+        filepath = config.EMBEDDINGS_DIR + "/embeddings.pkl"
     if os.path.exists(filepath):
         with open(filepath, "rb") as f:
             return pickle.load(f)
     return {}
 
-def save_embeddings(embeddings: dict, filepath: str):
+def save_embeddings(embeddings: dict, filepath: str = None):
+    if filepath is None:
+        filepath = config.EMBEDDINGS_DIR + "/embeddings.pkl"
     ensure_dir(os.path.dirname(filepath))
     with open(filepath, "wb") as f:
         pickle.dump(embeddings, f)
