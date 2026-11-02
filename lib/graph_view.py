@@ -9,7 +9,11 @@ def build_graph_html(graph_data: dict) -> str:
         html_template = f.read()
         
     # Inject the JSON string into the template
-    graph_json = json.dumps(graph_data)
+    # Escape <, > and & so note text like "</script>" cannot break out of the script tag
+    graph_json = (json.dumps(graph_data)
+                  .replace("<", "\\u003c")
+                  .replace(">", "\\u003e")
+                  .replace("&", "\\u0026"))
     html_content = html_template.replace("GRAPH_DATA_PLACEHOLDER", graph_json)
     
     return html_content

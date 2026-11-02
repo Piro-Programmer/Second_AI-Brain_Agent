@@ -1,8 +1,11 @@
 import json
 import lib.config as config
-from groq import Groq
+from groq import Groq, GroqError
 
 client = Groq(api_key=config.GROQ_API_KEY)
+
+class LLMError(Exception):
+    """Raised when every configured model fails."""
 
 def call_llm(prompt: str, system: str = "", json_mode: bool = True, temperature: float = 0.1) -> str:
     """Wrapper to call Groq API."""
@@ -12,15 +15,22 @@ def call_llm(prompt: str, system: str = "", json_mode: bool = True, temperature:
     messages.append({"role": "user", "content": prompt})
     
     kwargs = {
-        "model": config.GROQ_MODEL,
         "messages": messages,
         "temperature": temperature
     }
     if json_mode:
         kwargs["response_format"] = {"type": "json_object"}
-        
-    response = client.chat.completions.create(**kwargs)
-    return response.choices[0].message.content
+
+    # Try the primary model, then the fallback, so one retired model doesn't take the app down
+    last_error = None
+    for model in dict.fromkeys([config.GROQ_MODEL, config.GROQ_FALLBACK_MODEL]):
+        try:
+            response = client.chat.completions.create(model=model, **kwargs)
+            return response.choices[0].message.content or ""
+        except GroqError as e:
+            print(f"LLM call failed on {model}: {e}")
+            last_error = e
+    raise LLMError(f"All LLM models failed: {last_error}")
 
 def classify_content(text: str) -> dict:
     """Send text to LLM and get {para, tags, summary}."""

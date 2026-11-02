@@ -2,25 +2,24 @@ import os
 import sys
 import json
 import glob
+import html
+import secrets
+import yaml
 import frontmatter
+from yaml.loader import SafeLoader
 import streamlit as st
-import streamlit.components.v1 as components
+import streamlit_authenticator as stauth
 from datetime import datetime
 
 import lib.config as config
 from lib.io import ensure_dir
 from capture import capture_note
-from pipeline import run_full_pipeline
+from brain_pipeline import run_full_pipeline
 from ask import ask, get_wiki_note_by_id
+from lib.llm import LLMError
 from lib.graph_view import build_graph_html
 
-# -----------------------------------------------------------------------------
-# Initialization
-# -----------------------------------------------------------------------------
-for d in [config.RAW_DIR, config.WIKI_DIR, config.DATA_DIR, config.EMBEDDINGS_DIR]:
-    ensure_dir(d)
-for cat in config.PARA_CATEGORIES:
-    ensure_dir(os.path.join(config.WIKI_DIR, cat))
+# Initialization moved after login
 
 # -----------------------------------------------------------------------------
 # 1. Page Config & Custom Styling
@@ -107,10 +106,69 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -----------------------------------------------------------------------------
+# Authentication Layer
+# -----------------------------------------------------------------------------
+# users.yaml holds password hashes, so it is git-ignored; create an empty one on first run
+if not os.path.exists('users.yaml'):
+    starter = {
+        'credentials': {'usernames': {}},
+        'cookie': {
+            'name': 'secondself_auth_cookie',
+            'key': config.get_env_var('AUTH_COOKIE_KEY') or secrets.token_hex(32),
+            'expiry_days': 30,
+        },
+        'pre-authorized': {'emails': []},
+    }
+    with open('users.yaml', 'w') as file:
+        yaml.dump(starter, file, default_flow_style=False)
+
+with open('users.yaml') as file:
+    config_yaml = yaml.load(file, Loader=SafeLoader)
+
+authenticator = stauth.Authenticate(
+    config_yaml['credentials'],
+    config_yaml['cookie']['name'],
+    config_yaml['cookie']['key'],
+    config_yaml['cookie']['expiry_days']
+)
+
+if not st.session_state.get("authentication_status"):
+    login_tab, register_tab = st.tabs(["Login", "Register"])
+    with login_tab:
+        authenticator.login("main")
+    with register_tab:
+        try:
+            pre_auth_emails = config_yaml.get('pre-authorized', {}).get('emails')
+            if not pre_auth_emails:
+                pre_auth_emails = None
+            email_of_registered_user, username_of_registered_user, name_of_registered_user = authenticator.register_user("main", pre_authorized=pre_auth_emails)
+            if email_of_registered_user:
+                st.success('User registered successfully')
+                with open('users.yaml', 'w') as file:
+                    yaml.dump(config_yaml, file, default_flow_style=False)
+        except Exception as e:
+            st.error(e)
+
+if st.session_state.get("authentication_status") is False:
+    st.error("Username/password is incorrect")
+    st.stop()
+elif st.session_state.get("authentication_status") is None:
+    st.warning("Please enter your username and password")
+    st.stop()
+
+# If authenticated, setup dynamic paths
+config.set_user(st.session_state["username"])
+authenticator.logout('Logout', 'sidebar')
+for d in [config.RAW_DIR, config.WIKI_DIR, config.DATA_DIR, config.EMBEDDINGS_DIR]:
+    ensure_dir(d)
+for cat in config.PARA_CATEGORIES:
+    ensure_dir(os.path.join(config.WIKI_DIR, cat))
+
+# -----------------------------------------------------------------------------
 # 2. Cached Data Loaders
 # -----------------------------------------------------------------------------
 @st.cache_data(show_spinner=False)
-def load_graph_data():
+def load_graph_data(username):
     if os.path.exists(config.GRAPH_PATH):
         try:
             with open(config.GRAPH_PATH, "r", encoding="utf-8") as f:
@@ -120,11 +178,11 @@ def load_graph_data():
     return {"nodes": [], "edges": [], "metadata": {"node_count": 0, "edge_count": 0}}
 
 @st.cache_data(show_spinner=False)
-def get_all_notes_cached():
+def get_all_notes_cached(username):
     return get_wiki_note_by_id()
 
 @st.cache_resource(show_spinner=False)
-def load_embeddings_db():
+def load_embeddings_db(username):
     from lib.embeddings import load_embeddings
     return load_embeddings(os.path.join(config.DATA_DIR, "embeddings.pkl"))
 
@@ -167,8 +225,8 @@ with st.sidebar:
 
     # Knowledge Stats
     st.subheader("📊 Brain Metrics")
-    graph_data = load_graph_data()
-    all_notes = get_all_notes_cached()
+    graph_data = load_graph_data(st.session_state["username"])
+    all_notes = get_all_notes_cached(st.session_state["username"])
 
     m_col1, m_col2 = st.columns(2)
     with m_col1:
@@ -197,7 +255,7 @@ with st.sidebar:
 st.title("🧠 SecondSelf // Your Personal AI Second Brain")
 st.caption("Capture anything. AI automatically classifies, auto-links, maps to a live knowledge graph, and synthesizes answers in plain English.")
 
-tab_graph, tab_ask, tab_library = st.tabs(["🌌 Brain Graph", "🔮 Ask The Oracle", "📚 Note Library"])
+tab_graph, tab_ask, tab_library, tab_account = st.tabs(["🌌 Brain Graph", "🔮 Ask The Oracle", "📚 Note Library", "👤 Account Dashboard"])
 
 # -----------------------------------------------------------------------------
 # TAB 1: INTERACTIVE BRAIN GRAPH (vis-network)
@@ -211,7 +269,7 @@ with tab_graph:
     else:
         # Generate inline HTML for vis-network
         html_code = build_graph_html(graph_data)
-        components.html(html_code, height=620, scrolling=False)
+        st.iframe(html_code, height=620)
 
         # Node Details Inspector below graph
         st.markdown("#### 🔍 Explore Node Details")
@@ -249,10 +307,17 @@ with tab_ask:
 
     if ask_button and user_question.strip():
         with st.spinner("Searching semantic embeddings and generating answer..."):
-            result = ask(user_question.strip(), top_k=top_k_val)
+            try:
+                result = ask(user_question.strip(), top_k=top_k_val)
+            except LLMError as e:
+                print(e)
+                st.error("The AI model is unavailable right now. Please try again in a minute.")
+                st.stop()
 
         st.markdown("### Answer")
-        st.markdown(f'<div class="answer-box">{result["answer"]}</div>', unsafe_allow_html=True)
+        # Escape the LLM output: note text could otherwise inject HTML into the page
+        safe_answer = html.escape(result["answer"]).replace("\n", "<br>")
+        st.markdown(f'<div class="answer-box">{safe_answer}</div>', unsafe_allow_html=True)
 
         st.markdown(f"### 📚 Sources Cited ({len(result['sources'])} notes)")
         if not result["sources"]:
@@ -304,3 +369,46 @@ with tab_library:
                 st.markdown(f"**Obsidian Aliases:** `{', '.join(note['post'].get('aliases', []))}`")
             st.divider()
             st.markdown(note["content"])
+
+# -----------------------------------------------------------------------------
+# TAB 4: ACCOUNT DASHBOARD
+# -----------------------------------------------------------------------------
+with tab_account:
+    st.markdown("### 👤 Account Dashboard")
+    
+    acc_col1, acc_col2 = st.columns([1, 1])
+    
+    with acc_col1:
+        st.markdown("#### User Profile")
+        user_info = config_yaml['credentials']['usernames'].get(st.session_state["username"], {})
+        st.text_input("Name", value=f"{user_info.get('first_name', '')} {user_info.get('last_name', '')}".strip(), disabled=True)
+        st.text_input("Email", value=user_info.get('email', ''), disabled=True)
+        st.text_input("Username", value=st.session_state["username"], disabled=True)
+        
+        st.markdown("#### Storage Metrics")
+        st.metric("Total Brain Notes", graph_data["metadata"].get("node_count", len(all_notes)))
+        st.metric("Knowledge Graph Edges", graph_data["metadata"].get("edge_count", 0))
+
+    with acc_col2:
+        st.markdown("#### Account Management")
+        
+        try:
+            if authenticator.reset_password(st.session_state["username"], location="main", key="Reset Password"):
+                st.success("Password modified successfully")
+                with open('users.yaml', 'w') as file:
+                    yaml.dump(config_yaml, file, default_flow_style=False)
+        except Exception as e:
+            st.error(e)
+            
+        st.divider()
+        try:
+            if authenticator.update_user_details(st.session_state["username"], location="main", key="Update User Details"):
+                st.success("Entries updated successfully")
+                with open('users.yaml', 'w') as file:
+                    yaml.dump(config_yaml, file, default_flow_style=False)
+        except Exception as e:
+            st.error(e)
+
+    st.divider()
+    # Add a prominent logout button on the dashboard as well
+    authenticator.logout('Logout from Dashboard', 'main', key='Logout_Dashboard')
