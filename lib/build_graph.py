@@ -1,11 +1,7 @@
-import os
-import glob
-import json
 import re
 from datetime import datetime
-import frontmatter
 import lib.config as config
-from lib.io import write_json
+import lib.db as db
 
 PARA_COLORS = {
     "Projects": "#FF6B6B",
@@ -28,133 +24,57 @@ def extract_wikilinks(body: str) -> list[str]:
             links.append(cleaned)
     return links
 
-def parse_wiki_note(path: str) -> dict:
-    """Parse wiki frontmatter + body into a node dictionary."""
-    try:
-        post = frontmatter.load(path)
-    except Exception as e:
-        print(f"Warning: Failed to load frontmatter for {path}: {e}")
-        return {}
-
-    note_id = str(post.get("id", "")).strip()
-    if not note_id:
-        note_id = str(post.get("raw_id", "")).strip()
-        if not note_id:
-            note_id = os.path.splitext(os.path.basename(path))[0]
-
-    summary = str(post.get("summary", "")).strip()
-    if not summary:
-        summary = os.path.splitext(os.path.basename(path))[0]
-
-    para = str(post.get("para", "Resources")).strip()
-    if not para:
-        para = "Resources"
-
-    tags = post.get("tags", [])
-    if not isinstance(tags, list):
-        tags = [str(tags)] if tags else []
-
-    content = post.content or ""
-    content_preview = content.strip()[:200]
-    if len(content.strip()) > 200:
-        content_preview += "..."
-
-    color = PARA_COLORS.get(para, "#45B7D1")
-
-    # Extract links from frontmatter and wikilinks from body
-    frontmatter_links = post.get("links", [])
-    if not isinstance(frontmatter_links, list):
-        frontmatter_links = [str(frontmatter_links)] if frontmatter_links else []
-    
-    body_links = extract_wikilinks(content)
-    
-    all_links = []
-    seen_links = set()
-    for link in frontmatter_links + body_links:
-        link_str = str(link).strip()
-        if link_str and link_str != note_id and link_str not in seen_links:
-            seen_links.add(link_str)
-            all_links.append(link_str)
-
+def note_to_node(note: dict) -> dict:
+    """Shape a stored note into a vis-network node."""
+    summary = note["summary"]
+    content = note["content"].strip()
+    content_preview = content[:200] + ("..." if len(content) > 200 else "")
+    para = note["para"]
     return {
-        "id": note_id,
+        "id": note["id"],
         "label": summary if len(summary) <= 50 else summary[:47] + "...",
         "para": para,
-        "tags": tags,
+        "tags": note["tags"],
         "summary": summary,
         "content_preview": content_preview,
         "group": para,
-        "color": color,
+        "color": PARA_COLORS.get(para, "#45B7D1"),
         "title": f"Summary: {summary}\n\nPreview: {content_preview}",
-        "links": all_links
     }
 
-def build_graph() -> dict:
-    """Build in-memory nodes + edges from all wiki notes."""
-    search_pattern = os.path.join(config.WIKI_DIR, "**", "*.md")
-    note_paths = glob.glob(search_pattern, recursive=True)
-    
-    nodes = []
-    note_links = {}
-    valid_node_ids = set()
-    
-    # Parse all notes
-    for path in sorted(note_paths):
-        note_data = parse_wiki_note(path)
-        if not note_data or not note_data.get("id"):
-            continue
-            
-        note_id = note_data["id"]
-        valid_node_ids.add(note_id)
-        
-        links = note_data.pop("links", [])
-        note_links[note_id] = links
-        
-        nodes.append(note_data)
-        
-    # Build deduplicated edges
+def build_graph(username: str = None) -> dict:
+    """Build nodes + deduplicated edges from a user's processed notes."""
+    username = username or config.get_user()
+    notes = db.get_notes(username, processed=True)
+    nodes = [note_to_node(n) for n in notes]
+    valid_ids = {n["id"] for n in notes}
+
     edges_set = set()
-    for source_id, links in note_links.items():
-        for target_id in links:
-            if source_id == target_id:
-                continue
-            if target_id not in valid_node_ids:
-                continue
-            u, v = min(source_id, target_id), max(source_id, target_id)
-            edges_set.add((u, v))
-            
+    for note in notes:
+        for target_id in note["links"]:
+            if target_id != note["id"] and target_id in valid_ids:
+                edges_set.add((min(note["id"], target_id), max(note["id"], target_id)))
+
     edges = [
-        {
-            "source": u,
-            "target": v,
-            "from": u,
-            "to": v,
-            "weight": 1.0,
-            "type": "wikilink"
-        }
+        {"source": u, "target": v, "from": u, "to": v, "weight": 1.0, "type": "semantic"}
         for u, v in sorted(edges_set)
     ]
-    
-    metadata = {
-        "generated_at": datetime.now().isoformat(),
-        "node_count": len(nodes),
-        "edge_count": len(edges)
-    }
-    
     return {
         "nodes": nodes,
         "edges": edges,
-        "metadata": metadata
+        "metadata": {
+            "generated_at": datetime.now().isoformat(),
+            "node_count": len(nodes),
+            "edge_count": len(edges),
+        },
     }
 
-def export_graph(output_path: str = None) -> str:
-    """Export clean graph.json with nodes, edges, and metadata block."""
-    if output_path is None:
-        output_path = config.GRAPH_PATH
-    graph_data = build_graph()
-    write_json(graph_data, output_path)
-    print(f"Graph exported to {output_path} ({graph_data['metadata']['node_count']} nodes, {graph_data['metadata']['edge_count']} edges)")
-    return output_path
+def export_graph(username: str = None) -> dict:
+    """Build the graph and print a summary (kept for the CLI pipeline)."""
+    graph_data = build_graph(username)
+    print(f"Graph built ({graph_data['metadata']['node_count']} nodes, "
+          f"{graph_data['metadata']['edge_count']} edges)")
+    return graph_data
 
 if __name__ == "__main__":
     export_graph()

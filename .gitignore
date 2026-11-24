@@ -24,6 +24,7 @@ wiki/*
 !wiki/.obsidian/
 data/*.json
 data/*.pkl
+data/*.db
 
 # Local user data, secrets and logs
 users.yaml
