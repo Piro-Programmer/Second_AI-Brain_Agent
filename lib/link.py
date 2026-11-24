@@ -1,106 +1,44 @@
-import os
-import glob
-import json
-import numpy as np
-import frontmatter
 import lib.config as config
-from lib.embeddings import embed_text, cosine_similarity, load_embeddings, save_embeddings
+import lib.db as db
+from lib.embeddings import embed_text, cosine_similarity, text_hash
 
-
-
-def get_all_wiki_notes():
-    search_pattern = os.path.join(config.WIKI_DIR, "**", "*.md")
-    return glob.glob(search_pattern, recursive=True)
-
-def process_unlinked():
+def process_unlinked(username: str = None):
+    """Embed new or edited notes, then link every pair of notes above the similarity threshold."""
+    username = username or config.get_user()
     print("Starting auto-linking pipeline...")
-    
-    embeddings_file = os.path.join(config.DATA_DIR, "embeddings.pkl")
-    # Load existing embeddings
-    embeddings_db = load_embeddings(embeddings_file)
-    notes = get_all_wiki_notes()
-    
-    new_embeddings_added = False
-    notes_data = {}
-    
-    # Phase 1: Embed all notes
-    for note_path in notes:
-        post = frontmatter.load(note_path)
-        note_id = post.get("id")
-        
-        if not note_id:
-            continue
-            
-        summary = post.get("summary", "")
-        content = post.content
-        
-        text_to_embed = f"{summary}\n\n{content}"
-        notes_data[note_id] = {
-            "path": note_path,
-            "post": post,
-            "text": text_to_embed,
-            "existing_links": post.get("links", [])
-        }
-        
-        if note_id not in embeddings_db:
-            print(f"Embedding new note: {note_id}")
-            vector = embed_text(text_to_embed)
-            embeddings_db[note_id] = vector
-            new_embeddings_added = True
-            
-    if new_embeddings_added:
-        save_embeddings(embeddings_db, embeddings_file)
-        
-    # Phase 2: Compute similarities and link
-    links_added = 0
-    note_ids = list(notes_data.keys())
-    
-    for i, target_id in enumerate(note_ids):
-        target_data = notes_data[target_id]
-        target_vec = embeddings_db[target_id]
-        
-        new_links = []
-        
-        for candidate_id in note_ids:
-            if candidate_id == target_id:
+
+    notes = db.get_notes(username, processed=True)
+
+    # Phase 1: embed notes that are new or whose text changed since the last run
+    for note in notes:
+        text_to_embed = f"{note['summary']}\n\n{note['content']}"
+        current_hash = text_hash(text_to_embed)
+        if note["embedding"] is None or note["embedded_text_hash"] != current_hash:
+            print(f"Embedding note: {note['id']}")
+            note["embedding"] = embed_text(text_to_embed)
+            db.set_embedding(note["id"], note["embedding"], current_hash)
+
+    # Phase 2: compare every pair once and store links on both notes
+    links = {note["id"]: set(note["links"]) for note in notes}
+    for i, a in enumerate(notes):
+        for b in notes[i + 1:]:
+            if b["id"] in links[a["id"]]:
                 continue
-                
-            # Check if already linked
-            if candidate_id in target_data["existing_links"]:
-                continue
-                
-            candidate_vec = embeddings_db[candidate_id]
-            sim = cosine_similarity(target_vec, candidate_vec)
-            
+            sim = cosine_similarity(a["embedding"], b["embedding"])
             if sim >= config.SIMILARITY_LINK_THRESHOLD:
-                print(f"Match found! {target_id} <-> {candidate_id} (Score: {sim:.2f})")
-                new_links.append(candidate_id)
-                
-        if new_links:
-            # Update note
-            post = target_data["post"]
-            
-            # Update frontmatter links
-            existing = post.get("links", [])
-            if not isinstance(existing, list):
-                existing = []
-            
-            updated_links = list(set(existing + new_links))
-            post["links"] = updated_links
-            
-            # Append wikilinks to body
-            wikilink_text = "\n\n" + "\n".join([f"[[{link_id}]]" for link_id in new_links])
-            post.content += wikilink_text
-            
-            # Save markdown
-            # Write text ourselves: frontmatter.dump into a binary file fails on current versions
-            with open(target_data["path"], "w", encoding="utf-8") as f:
-                f.write(frontmatter.dumps(post))
-                
-            target_data["existing_links"] = updated_links
-            links_added += len(new_links)
-            
+                print(f"Match found! {a['id']} <-> {b['id']} (Score: {sim:.2f})")
+                links[a["id"]].add(b["id"])
+                links[b["id"]].add(a["id"])
+
+    links_added = 0
+    for note in notes:
+        new_links = sorted(links[note["id"]])
+        if new_links != sorted(note["links"]):
+            links_added += len(new_links) - len(note["links"])
+            db.set_links(note["id"], new_links)
+
     print(f"Auto-linking complete. Inserted {links_added} new links.")
+    return links_added
 
 if __name__ == "__main__":
     process_unlinked()

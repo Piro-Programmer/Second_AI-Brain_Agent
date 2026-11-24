@@ -1,24 +1,15 @@
-import os
-import sys
-import json
-import glob
-import secrets
-import yaml
-import frontmatter
-from yaml.loader import SafeLoader
 import streamlit as st
 import streamlit_authenticator as stauth
-from datetime import datetime
 
 import lib.config as config
-from lib.io import ensure_dir
+import lib.db as db
+from lib import password_reset
 from capture import capture_note
 from brain_pipeline import run_full_pipeline
-from ask import ask, get_wiki_note_by_id
+from ask import ask, get_notes_by_id
+from lib.build_graph import build_graph
 from lib.llm import LLMError
 from lib.graph_view import build_graph_html
-
-# Initialization moved after login
 
 # -----------------------------------------------------------------------------
 # 1. Page Config & Custom Styling
@@ -107,46 +98,50 @@ st.markdown("""
 # -----------------------------------------------------------------------------
 # Authentication Layer
 # -----------------------------------------------------------------------------
-# users.yaml holds password hashes, so it is git-ignored; create an empty one on first run
-if not os.path.exists('users.yaml'):
-    starter = {
-        'credentials': {'usernames': {}},
-        'cookie': {
-            'name': 'secondself_auth_cookie',
-            'key': config.get_env_var('AUTH_COOKIE_KEY') or secrets.token_hex(32),
-            'expiry_days': 30,
-        },
-        'pre-authorized': {'emails': []},
-    }
-    with open('users.yaml', 'w') as file:
-        yaml.dump(starter, file, default_flow_style=False)
+# Users live in the database (Supabase Postgres in the cloud, SQLite locally), so accounts
+# survive restarts and redeploys. streamlit-authenticator works on an in-memory credentials
+# dict; db.sync_credentials() writes any change back to the database.
+credentials = db.load_credentials()
+authenticator = stauth.Authenticate(credentials, "secondself_auth_cookie", db.get_cookie_key(), 30)
 
-with open('users.yaml') as file:
-    config_yaml = yaml.load(file, Loader=SafeLoader)
+def render_forgot_password():
+    st.markdown("#### Forgot your password?")
+    st.caption("We'll email you a 6-digit code. Use it below to set a new password.")
+    with st.form("forgot_request", clear_on_submit=False):
+        who = st.text_input("Username or email", key="reset_request_who")
+        if st.form_submit_button("Email me a reset code") and who.strip():
+            try:
+                st.info(password_reset.request_reset(who))
+                st.session_state["reset_for"] = who.strip()
+            except Exception as e:
+                print(f"Password reset email failed: {e}")
+                st.error("Couldn't send the email right now. Please try again later.")
 
-authenticator = stauth.Authenticate(
-    config_yaml['credentials'],
-    config_yaml['cookie']['name'],
-    config_yaml['cookie']['key'],
-    config_yaml['cookie']['expiry_days']
-)
+    with st.form("forgot_confirm", clear_on_submit=False):
+        who = st.text_input("Username or email", value=st.session_state.get("reset_for", ""),
+                            key="reset_confirm_who")
+        code = st.text_input("6-digit code", max_chars=6)
+        new_pw = st.text_input("New password", type="password", help=password_reset.PASSWORD_RULES)
+        repeat_pw = st.text_input("Repeat new password", type="password")
+        if st.form_submit_button("Set new password"):
+            ok, message = password_reset.confirm_reset(who, code, new_pw, repeat_pw)
+            (st.success if ok else st.error)(message)
 
 if not st.session_state.get("authentication_status"):
-    login_tab, register_tab = st.tabs(["Login", "Register"])
+    login_tab, register_tab, forgot_tab = st.tabs(["Login", "Register", "Forgot password"])
     with login_tab:
         authenticator.login("main")
     with register_tab:
+        st.caption(f"Password must be {password_reset.PASSWORD_RULES}.")
         try:
-            pre_auth_emails = config_yaml.get('pre-authorized', {}).get('emails')
-            if not pre_auth_emails:
-                pre_auth_emails = None
-            email_of_registered_user, username_of_registered_user, name_of_registered_user = authenticator.register_user("main", pre_authorized=pre_auth_emails)
-            if email_of_registered_user:
-                st.success('User registered successfully')
-                with open('users.yaml', 'w') as file:
-                    yaml.dump(config_yaml, file, default_flow_style=False)
+            new_email, new_username, _ = authenticator.register_user("main")
+            if new_email:
+                db.sync_credentials(credentials)
+                st.success("Account created. Open the **Login** tab to sign in.")
         except Exception as e:
             st.error(e)
+    with forgot_tab:
+        render_forgot_password()
 
 if st.session_state.get("authentication_status") is False:
     st.error("Username/password is incorrect")
@@ -155,35 +150,25 @@ elif st.session_state.get("authentication_status") is None:
     st.warning("Please enter your username and password")
     st.stop()
 
-# If authenticated, setup dynamic paths
-config.set_user(st.session_state["username"])
+username = st.session_state["username"]
+config.set_user(username)
 authenticator.logout('Logout', 'sidebar')
-for d in [config.RAW_DIR, config.WIKI_DIR, config.DATA_DIR, config.EMBEDDINGS_DIR]:
-    ensure_dir(d)
-for cat in config.PARA_CATEGORIES:
-    ensure_dir(os.path.join(config.WIKI_DIR, cat))
 
 # -----------------------------------------------------------------------------
-# 2. Cached Data Loaders
+# 2. Cached Data Loaders (cleared whenever notes change)
 # -----------------------------------------------------------------------------
 @st.cache_data(show_spinner=False)
 def load_graph_data(username):
-    if os.path.exists(config.GRAPH_PATH):
-        try:
-            with open(config.GRAPH_PATH, "r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            pass
-    return {"nodes": [], "edges": [], "metadata": {"node_count": 0, "edge_count": 0}}
+    return build_graph(username)
 
 @st.cache_data(show_spinner=False)
 def get_all_notes_cached(username):
-    return get_wiki_note_by_id()
+    # Drop embeddings: the UI never needs them and they bloat the cache
+    return {k: {**n, "embedding": None} for k, n in get_notes_by_id(username).items()}
 
-@st.cache_resource(show_spinner=False)
-def load_embeddings_db(username):
-    from lib.embeddings import load_embeddings
-    return load_embeddings(os.path.join(config.DATA_DIR, "embeddings.pkl"))
+@st.cache_data(show_spinner=False)
+def count_unprocessed(username):
+    return len(db.get_notes(username, processed=False))
 
 # -----------------------------------------------------------------------------
 # 3. Sidebar: Quick Capture & Pipeline Engine
@@ -197,10 +182,15 @@ with st.sidebar:
     st.subheader("⚡ Quick Capture")
     with st.form("capture_form", clear_on_submit=True):
         new_note_text = st.text_area("Capture note, idea, or link...", height=100, placeholder="Type an idea, summary, or paste text...")
-        submitted_capture = st.form_submit_button("📥 Save to Raw", use_container_width=True)
+        submitted_capture = st.form_submit_button("📥 Save note", use_container_width=True)
         if submitted_capture and new_note_text.strip():
-            capture_note(new_note_text.strip())
-            st.success("Saved to raw/ buffer!")
+            capture_note(new_note_text.strip(), username)
+            count_unprocessed.clear()
+            st.success("Saved! Click **🚀 Process & Link** to file it.")
+
+    waiting = count_unprocessed(username)
+    if waiting:
+        st.caption(f"📥 {waiting} note(s) waiting to be processed")
 
     st.divider()
 
@@ -210,22 +200,20 @@ with st.sidebar:
     with col1:
         if st.button("🚀 Process & Link", use_container_width=True, help="Run Classify -> Auto-Link -> Rebuild Graph"):
             with st.spinner("Organizing, filing, and mapping brain..."):
-                run_full_pipeline()
+                run_full_pipeline(username)
                 st.cache_data.clear()
-                st.cache_resource.clear()
             st.success("Brain updated!")
     with col2:
         if st.button("🔄 Refresh UI", use_container_width=True, help="Reload caches and update views"):
             st.cache_data.clear()
-            st.cache_resource.clear()
             st.rerun()
 
     st.divider()
 
     # Knowledge Stats
     st.subheader("📊 Brain Metrics")
-    graph_data = load_graph_data(st.session_state["username"])
-    all_notes = get_all_notes_cached(st.session_state["username"])
+    graph_data = load_graph_data(username)
+    all_notes = get_all_notes_cached(username)
 
     m_col1, m_col2 = st.columns(2)
     with m_col1:
@@ -264,7 +252,7 @@ with tab_graph:
     st.write("Hover over any node to view its summary and tags. Drag nodes to explore relationships.")
 
     if not graph_data["nodes"]:
-        st.warning("No nodes found in graph.json. Click **🚀 Process & Link** in the sidebar to build your graph!")
+        st.warning("No notes in your brain yet. Capture a note, then click **🚀 Process & Link** in the sidebar to build your graph!")
     else:
         # Generate inline HTML for vis-network
         html_code = build_graph_html(graph_data)
@@ -284,8 +272,8 @@ with tab_graph:
                     with c1:
                         st.markdown(f"**Category:** `<span class='badge-{note_obj.get('para', 'Resources')}'>{note_obj.get('para', 'Resources')}</span>`", unsafe_allow_html=True)
                         st.markdown(f"**ID:** `{str(note_obj.get('id', 'N/A'))[:8]}...`")
-                        if note_obj.get("post", {}).get("tags"):
-                            st.markdown(f"**Tags:** {', '.join(note_obj['post'].get('tags', []))}")
+                        if note_obj["tags"]:
+                            st.markdown(f"**Tags:** {', '.join(note_obj['tags'])}")
                     with c2:
                         st.markdown(note_obj.get("content", ""))
 
@@ -307,7 +295,7 @@ with tab_ask:
     if ask_button and user_question.strip():
         with st.spinner("Searching semantic embeddings and generating answer..."):
             try:
-                result = ask(user_question.strip(), top_k=top_k_val)
+                result = ask(user_question.strip(), top_k=top_k_val, username=username)
             except LLMError as e:
                 print(e)
                 st.error("The AI model is unavailable right now. Please try again in a minute.")
@@ -361,13 +349,15 @@ with tab_library:
 
     for note in sorted(filtered_notes, key=lambda x: x.get("summary", "")):
         with st.expander(f"[{note.get('para', 'Resources')}] {note.get('summary', 'Untitled')}"):
-            st.markdown(f"**UUID:** `{note.get('id', 'N/A')}`")
-            if note["post"].get("tags"):
-                st.markdown(f"**Tags:** `{', '.join(note['post'].get('tags', []))}`")
-            if note["post"].get("aliases"):
-                st.markdown(f"**Obsidian Aliases:** `{', '.join(note['post'].get('aliases', []))}`")
+            st.caption(f"Captured {note['created_at']:%d %b %Y, %H:%M} · {note['source_type']}")
+            if note["tags"]:
+                st.markdown(f"**Tags:** `{', '.join(note['tags'])}`")
             st.divider()
             st.markdown(note["content"])
+            if st.button("🗑️ Delete note", key=f"delete_{note['id']}"):
+                db.delete_note(username, note["id"])
+                st.cache_data.clear()
+                st.rerun()
 
 # -----------------------------------------------------------------------------
 # TAB 4: ACCOUNT DASHBOARD
@@ -379,7 +369,7 @@ with tab_account:
     
     with acc_col1:
         st.markdown("#### User Profile")
-        user_info = config_yaml['credentials']['usernames'].get(st.session_state["username"], {})
+        user_info = credentials['usernames'].get(username, {})
         st.text_input("Name", value=f"{user_info.get('first_name', '')} {user_info.get('last_name', '')}".strip(), disabled=True)
         st.text_input("Email", value=user_info.get('email', ''), disabled=True)
         st.text_input("Username", value=st.session_state["username"], disabled=True)
@@ -392,19 +382,17 @@ with tab_account:
         st.markdown("#### Account Management")
         
         try:
-            if authenticator.reset_password(st.session_state["username"], location="main", key="Reset Password"):
+            if authenticator.reset_password(username, location="main", key="Reset Password"):
+                db.sync_credentials(credentials)
                 st.success("Password modified successfully")
-                with open('users.yaml', 'w') as file:
-                    yaml.dump(config_yaml, file, default_flow_style=False)
         except Exception as e:
             st.error(e)
             
         st.divider()
         try:
-            if authenticator.update_user_details(st.session_state["username"], location="main", key="Update User Details"):
+            if authenticator.update_user_details(username, location="main", key="Update User Details"):
+                db.sync_credentials(credentials)
                 st.success("Entries updated successfully")
-                with open('users.yaml', 'w') as file:
-                    yaml.dump(config_yaml, file, default_flow_style=False)
         except Exception as e:
             st.error(e)
 

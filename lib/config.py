@@ -32,20 +32,6 @@ def get_user() -> str:
         pass
     return _username
 
-# Dynamic Paths
-def __getattr__(name):
-    if name == "RAW_DIR":
-        return f"users/{get_user()}/raw"
-    if name == "WIKI_DIR":
-        return f"users/{get_user()}/wiki"
-    if name == "DATA_DIR":
-        return f"users/{get_user()}/data"
-    if name == "EMBEDDINGS_DIR":
-        return f"users/{get_user()}/data/embeddings"
-    if name == "GRAPH_PATH":
-        return f"users/{get_user()}/data/graph.json"
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-
 
 # LLM provider
 LLM_PROVIDER = get_env_var("LLM_PROVIDER", "groq")

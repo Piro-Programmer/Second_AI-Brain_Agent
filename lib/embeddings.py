@@ -1,9 +1,7 @@
-import os
-import pickle
+import hashlib
 import numpy as np
 from sentence_transformers import SentenceTransformer
 import lib.config as config
-from lib.io import ensure_dir
 
 _model = None
 
@@ -31,19 +29,8 @@ def cosine_similarity(a: np.ndarray, b: np.ndarray) -> float:
     if norm_a == 0 or norm_b == 0:
         return 0.0
 
-    return np.dot(a, b) / (norm_a * norm_b)
+    return float(np.dot(a, b) / (norm_a * norm_b))
 
-def load_embeddings(filepath: str = None) -> dict:
-    if filepath is None:
-        filepath = config.EMBEDDINGS_DIR + "/embeddings.pkl"
-    if os.path.exists(filepath):
-        with open(filepath, "rb") as f:
-            return pickle.load(f)
-    return {}
-
-def save_embeddings(embeddings: dict, filepath: str = None):
-    if filepath is None:
-        filepath = config.EMBEDDINGS_DIR + "/embeddings.pkl"
-    ensure_dir(os.path.dirname(filepath))
-    with open(filepath, "wb") as f:
-        pickle.dump(embeddings, f)
+def text_hash(text: str) -> str:
+    """Fingerprint of the embedded text, so edited notes get re-embedded."""
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
