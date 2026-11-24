@@ -58,8 +58,10 @@ GROK_MODEL = "grok-2-1212"
 
 # Embeddings & thresholds
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
-SIMILARITY_LINK_THRESHOLD = 0.75
-SIMILARITY_RETRIEVAL_MIN = 0.30
+# MiniLM scores clearly related short notes around 0.5-0.6, so 0.75 linked almost nothing
+SIMILARITY_LINK_THRESHOLD = float(get_env_var("SIMILARITY_LINK_THRESHOLD", 0.50))
+# Ask always sends the top-K notes to the LLM; this floor only drops clearly unrelated ones
+SIMILARITY_RETRIEVAL_MIN = float(get_env_var("SIMILARITY_RETRIEVAL_MIN", 0.10))
 
 # PARA categories
 PARA_CATEGORIES = ["Projects", "Areas", "Resources", "Archives"]

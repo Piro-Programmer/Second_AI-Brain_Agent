@@ -93,8 +93,9 @@ def process_unlinked():
             post.content += wikilink_text
             
             # Save markdown
-            with open(target_data["path"], "wb") as f:
-                frontmatter.dump(post, f)
+            # Write text ourselves: frontmatter.dump into a binary file fails on current versions
+            with open(target_data["path"], "w", encoding="utf-8") as f:
+                f.write(frontmatter.dumps(post))
                 
             target_data["existing_links"] = updated_links
             links_added += len(new_links)
