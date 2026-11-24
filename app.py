@@ -2,7 +2,6 @@ import os
 import sys
 import json
 import glob
-import html
 import secrets
 import yaml
 import frontmatter
@@ -315,13 +314,13 @@ with tab_ask:
                 st.stop()
 
         st.markdown("### Answer")
-        # Escape the LLM output: note text could otherwise inject HTML into the page
-        safe_answer = html.escape(result["answer"]).replace("\n", "<br>")
-        st.markdown(f'<div class="answer-box">{safe_answer}</div>', unsafe_allow_html=True)
+        # Plain st.markdown renders formatting but escapes raw HTML, so note text can't inject markup
+        with st.container(border=True):
+            st.markdown(result["answer"])
 
         st.markdown(f"### 📚 Sources Cited ({len(result['sources'])} notes)")
         if not result["sources"]:
-            st.info("No notes exceeded the similarity threshold (0.30) for this query.")
+            st.info(f"No notes exceeded the similarity threshold ({config.SIMILARITY_RETRIEVAL_MIN:.2f}) for this query.")
         else:
             for idx, src in enumerate(result["sources"], 1):
                 src_note = all_notes.get(src["id"])
